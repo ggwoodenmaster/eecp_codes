@@ -9,5 +9,5 @@ void loop() {
   // put your main code here, to run repeatedly:
   Wire.begin();
   digitalWrite(2, LOW);
-  delay(200);
+  delay(2005);
 }
