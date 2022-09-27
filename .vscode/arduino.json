@@ -1,8 +1,0 @@
-{
-    "board": "arduino:avr:uno",
-    "port": "COM1",
-    "programmer": "arduino:avrispmkii",
-    "sketch": "arduino_initesting.ino",
-    "intelliSenseGen": "enable",
-    "output": "C:/Users/Pkelven/Desktop/EG4301/build"
-}
