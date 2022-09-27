@@ -10,4 +10,5 @@ void loop() {
   Wire.begin();
   digitalWrite(2, LOW);
   delay(2000);
+  delay(1000);
 }
