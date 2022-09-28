@@ -1,0 +1,6 @@
+{
+    "board": "arduino:avr:uno",
+    "programmer": "arduino:avrispmkii",
+    "output": "C:/Users/Pre 1/Desktop/EG4301/Builds/build1",
+    "sketch": "initesting.ino"
+}
