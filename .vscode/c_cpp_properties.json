@@ -17,9 +17,14 @@
             "intelliSenseMode": "gcc-x64",
             "includePath": [
                 "C:\\Users\\Pkelven\\Desktop\\arduino-1.8.15\\hardware\\arduino\\avr\\cores\\arduino",
-                "C:\\Users\\Pkelven\\Desktop\\arduino-1.8.15\\hardware\\arduino\\avr\\variants\\standard",
+                "C:\\Users\\Pkelven\\Desktop\\arduino-1.8.15\\hardware\\arduino\\avr\\variants\\mega",
+                "C:\\Users\\Pkelven\\Documents\\Arduino\\libraries\\Adafruit_GFX_Library",
+                "C:\\Users\\Pkelven\\Documents\\Arduino\\libraries\\Adafruit_BusIO",
                 "C:\\Users\\Pkelven\\Desktop\\arduino-1.8.15\\hardware\\arduino\\avr\\libraries\\Wire\\src",
-                "C:\\Users\\Pkelven\\Documents\\Arduino\\libraries\\New-LiquidCrystal-master",
+                "C:\\Users\\Pkelven\\Desktop\\arduino-1.8.15\\hardware\\arduino\\avr\\libraries\\SPI\\src",
+                "C:\\Users\\Pkelven\\Documents\\Arduino\\libraries\\Adafruit_TFTLCD_Library",
+                "C:\\Users\\Pkelven\\Desktop\\arduino-1.8.15\\libraries\\TouchScreen",
+                "C:\\Users\\Pkelven\\Documents\\Arduino\\libraries\\MCUFRIEND_kbv",
                 "c:\\users\\pkelven\\desktop\\arduino-1.8.15\\hardware\\tools\\avr\\lib\\gcc\\avr\\7.3.0\\include",
                 "c:\\users\\pkelven\\desktop\\arduino-1.8.15\\hardware\\tools\\avr\\lib\\gcc\\avr\\7.3.0\\include-fixed",
                 "c:\\users\\pkelven\\desktop\\arduino-1.8.15\\hardware\\tools\\avr\\avr\\include"
@@ -32,7 +37,7 @@
             "defines": [
                 "F_CPU=16000000L",
                 "ARDUINO=10815",
-                "ARDUINO_AVR_UNO",
+                "ARDUINO_AVR_MEGA2560",
                 "ARDUINO_ARCH_AVR",
                 "__DBL_MIN_EXP__=(-125)",
                 "__HQ_FBIT__=15",
