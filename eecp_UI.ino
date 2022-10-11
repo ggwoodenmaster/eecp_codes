@@ -1,14 +1,14 @@
+#include <Adafruit_GFX.h>
 #include <SPI.h>
-#include <Adafruit_GFX.h>    // Adafruit's core graphics library
-#include <Adafruit_ILI9341.h> // Adafruit's hardware-specific library: for drawing
-#include <Adafruit_FT6206.h>     //Touchscreen library: for touchscreen sensing
 #include <Wire.h>
+#include <Adafruit_ILI9341.h>
+#include <Adafruit_FT6206.h> // DO NOT CHANGE INCLUDE ORDER!!!
 
 #define LCD_DC 9
 #define LCD_CS 10
-#define ICSP_SCLK 13
-#define ICSP_MISO 12
-#define ICSP_MOSI 11
+//#define ICSP_SCLK 13
+//#define ICSP_MISO 12
+//#define ICSP_MOSI 11
 
 #define BLACK   0x0000
 #define BLUE    0x001F
@@ -25,9 +25,13 @@ Adafruit_FT6206 ts = Adafruit_FT6206();
 Adafruit_ILI9341 tft = Adafruit_ILI9341(LCD_CS, LCD_DC);
 
 void setup() {
-    Serial.begin(9600);
-    Serial.println("ILI9341 Test!"); 
-    tft.begin();
+  Serial.begin(9600);
+  tft.begin();
+  if (!ts.begin(40)) { 
+    Serial.println("Unable to start touchscreen.");
+  } else { 
+    Serial.println("Touchscreen started.");
+  } 
     tft.setRotation(1);
     tft.fillScreen(CYAN);
     delay(500);
@@ -36,24 +40,25 @@ void setup() {
 }
 
 void loop() {
-  if (ts.touched()) {
-    Serial.println("Touched!");
-    TS_Point p = ts.getPoint();
-    int y = p.x;
-    p.y = map(p.y, 0, 320, 320, 0);
-    int x = p.y;
-    Serial.print("Current x = "); Serial.println(x);
-    Serial.print("Current y = "); Serial.println(y);
-    Serial.print("Current z = "); Serial.println(p.z);
-    if (CurrentPage == 0) {
-        if (x>= 60 && x<= 260 && y>= 180 && y<= 220) {
-            CurrentPage = 1;
-            drawPage1();
-        }
+    //Serial.println(ts.touched());
+    if (ts.touched()) {
+        Serial.println("Touched!");
+        TS_Point p = ts.getPoint();
+        int y = p.x;
+        p.y = map(p.y, 0, 320, 320, 0);
+        int x = p.y;
+        Serial.print("Current x = "); Serial.println(x);
+        Serial.print("Current y = "); Serial.println(y);
+        Serial.print("Current z = "); Serial.println(p.z);
+        delay(500);
+            if (CurrentPage == 0) {
+                if (x>= 60 && x<= 260 && y>= 180 && y<= 220) {
+                    CurrentPage = 1;
+                    drawPage1();
+                }
+            }
     }
-  }
 }
-
 
 void drawHome() {
     tft.fillScreen(BLACK);
