@@ -2,6 +2,7 @@
 #include <Adafruit_GFX.h>    // Adafruit's core graphics library
 #include <Adafruit_ILI9341.h> // Adafruit's hardware-specific library: for drawing
 #include <Adafruit_FT6206.h>     //Touchscreen library: for touchscreen sensing
+#include <Wire.h>
 
 #define LCD_DC 9
 #define LCD_CS 10
@@ -18,44 +19,54 @@
 #define YELLOW  0xFFE0
 #define WHITE   0xFFFF
 
+int CurrentPage;
+
+Adafruit_FT6206 ts = Adafruit_FT6206();
 Adafruit_ILI9341 tft = Adafruit_ILI9341(LCD_CS, LCD_DC);
 
 void setup() {
     Serial.begin(9600);
     Serial.println("ILI9341 Test!"); 
     tft.begin();
-    uint8_t x = tft.readcommand8(ILI9341_RDMODE);
-    Serial.print("Display Power Mode: 0x"); Serial.println(x, HEX);
-    x = tft.readcommand8(ILI9341_RDMADCTL);
-    Serial.print("MADCTL Mode: 0x"); Serial.println(x, HEX);
-    x = tft.readcommand8(ILI9341_RDPIXFMT);
-    Serial.print("Pixel Format: 0x"); Serial.println(x, HEX);
-    x = tft.readcommand8(ILI9341_RDIMGFMT);
-    Serial.print("Image Format: 0x"); Serial.println(x, HEX);
-    x = tft.readcommand8(ILI9341_RDSELFDIAG);
-    Serial.print("Self Diagnostic: 0x"); Serial.println(x, HEX); 
     tft.setRotation(1);
     tft.fillScreen(CYAN);
     delay(500);
     drawHome();
+    CurrentPage = 0;
 }
 
 void loop() {
-
+  if (ts.touched()) {
+    Serial.println("Touched!");
+    TS_Point p = ts.getPoint();
+    int y = p.x;
+    p.y = map(p.y, 0, 320, 320, 0);
+    int x = p.y;
+    Serial.print("Current x = "); Serial.println(x);
+    Serial.print("Current y = "); Serial.println(y);
+    Serial.print("Current z = "); Serial.println(p.z);
+    if (CurrentPage == 0) {
+        if (x>= 60 && x<= 260 && y>= 180 && y<= 220) {
+            CurrentPage = 1;
+            drawPage1();
+        }
+    }
+  }
 }
+
 
 void drawHome() {
     tft.fillScreen(BLACK);
     tft.drawRoundRect(0, 0, 319, 240, 8, WHITE);    //Page border
 
     tft.fillRoundRect(60, 180, 200, 40, 8, RED);
-    tft.drawRoundRect(60, 180, 200, 40, 8, WHITE);  //Game
+    tft.drawRoundRect(60, 180, 200, 40, 8, WHITE);  
 
-    tft.fillRoundRect(60, 130, 200, 40, 8, RED);    //RGB led
+    tft.fillRoundRect(60, 130, 200, 40, 8, RED);    
     tft.drawRoundRect(60, 130, 200, 40, 8, WHITE);
 
     tft.fillRoundRect(60, 80, 200, 40, 8, RED);
-    tft.drawRoundRect(60, 80, 200, 40, 8, WHITE);  //Oscilloscope
+    tft.drawRoundRect(60, 80, 200, 40, 8, WHITE);  
 
     tft.setCursor(60, 20);
     tft.setTextSize(2);
@@ -75,4 +86,12 @@ void drawHome() {
 
     tft.setCursor(65, 95);
     tft.print("Set cycle");
+}
+
+void drawPage1() {
+    tft.fillScreen(BLACK);
+    tft.fillRoundRect(60, 180, 200, 40, 8, RED);
+    tft.drawRoundRect(60, 180, 200, 40, 8, WHITE);
+    tft.setCursor(65, 195);
+    tft.print("BACK");
 }
