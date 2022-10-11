@@ -1,6 +1,6 @@
 {
     "board": "arduino:avr:mega",
-    "port": "COM1",
+    "port": "COM3",
     "sketch": "LED_lightup_with_touchscreen.ino",
     "output": "C:\\Users\\Pkelven\\Desktop\\EG4301\\Build\\desktop_build",
     "configuration": "cpu=atmega2560"

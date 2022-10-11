@@ -1,259 +1,365 @@
-/*
-  LCD Touchscreen Demo
-  lcd-simple-touch.ino
-  Uses touchscreen to display 3 buttons
-  Controls 3 LEDs
+/***************************************************
+  This is our GFX example for the Adafruit ILI9341 Breakout and Shield
+  ----> http://www.adafruit.com/products/1651
 
-  Modified from Adafruit phone screen demo
-  DroneBot Workshop 2019
-  https://dronebotworkshop.com
-*/
+  Check out the links above for our tutorials and wiring diagrams
+  These displays use SPI to communicate, 4 or 5 pins are required to
+  interface (RST is optional)
+  Adafruit invests time and resources providing this open source code,
+  please support Adafruit and open-source hardware by purchasing
+  products from Adafruit!
 
-#include <Adafruit_GFX.h>    // Core graphics library
-#include <Adafruit_TFTLCD.h> // LCD library
-#include <TouchScreen.h> // Touchscreen Library
-#include <MCUFRIEND_kbv.h> // Touchscreen Hardware-specific library
+  Written by Limor Fried/Ladyada for Adafruit Industries.
+  MIT license, all text above must be included in any redistribution
+ ****************************************************/
 
-#define LCD_CS A3 // Chip Select goes to Analog 3
-#define LCD_CD A2 // Command/Data goes to Analog 2
-#define LCD_WR A1 // LCD Write goes to Analog 1
-#define LCD_RD A0 // LCD Read goes to Analog 0
 
-#define LCD_RESET A4 // Can alternately just connect to Arduino's reset pin
+#include "SPI.h"
+#include "Adafruit_GFX.h"
+#include "Adafruit_ILI9341.h"
 
-// Assign human-readable names to some common 16-bit color values:
-#define BLACK   0x0000
-#define BLUE    0x001F
-#define RED     0xF800
-#define GREEN   0x07E0
-#define CYAN    0x07FF
-#define MAGENTA 0xF81F
-#define YELLOW  0xFFE0
-#define WHITE   0xFFFF
+// For the Adafruit shield, these are the default.
+#define TFT_DC 9
+#define TFT_CS 10
 
-// Color definitions
-#define ILI9341_BLACK       0x0000      /*   0,   0,   0 */
-#define ILI9341_NAVY        0x000F      /*   0,   0, 128 */
-#define ILI9341_DARKGREEN   0x03E0      /*   0, 128,   0 */
-#define ILI9341_DARKCYAN    0x03EF      /*   0, 128, 128 */
-#define ILI9341_MAROON      0x7800      /* 128,   0,   0 */
-#define ILI9341_PURPLE      0x780F      /* 128,   0, 128 */
-#define ILI9341_OLIVE       0x7BE0      /* 128, 128,   0 */
-#define ILI9341_LIGHTGREY   0xC618      /* 192, 192, 192 */
-#define ILI9341_DARKGREY    0x7BEF      /* 128, 128, 128 */
-#define ILI9341_BLUE        0x001F      /*   0,   0, 255 */
-#define ILI9341_GREEN       0x07E0      /*   0, 255,   0 */
-#define ILI9341_CYAN        0x07FF      /*   0, 255, 255 */
-#define ILI9341_RED         0xF800      /* 255,   0,   0 */
-#define ILI9341_MAGENTA     0xF81F      /* 255,   0, 255 */
-#define ILI9341_YELLOW      0xFFE0      /* 255, 255,   0 */
-#define ILI9341_WHITE       0xFFFF      /* 255, 255, 255 */
-#define ILI9341_ORANGE      0xFD20      /* 255, 165,   0 */
-#define ILI9341_GREENYELLOW 0xAFE5      /* 173, 255,  47 */
-#define ILI9341_PINK        0xF81F
+// Use hardware SPI (on Uno, #13, #12, #11) and the above for CS/DC
+Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
+// If using the breakout, change pins as desired
+//Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST, TFT_MISO);
 
-/******************* UI details */
-#define BUTTON_X 52
-#define BUTTON_Y 150
-#define BUTTON_W 80
-#define BUTTON_H 45
-#define BUTTON_SPACING_X 26
-#define BUTTON_SPACING_Y 30
-#define BUTTON_TEXTSIZE 3
-
-// Define pins for resistive touchscreen
-#define YP A2  // must be an analog pin, use "An" notation!
-#define XM A3  // must be an analog pin, use "An" notation!
-#define YM 8   // can be a digital pin
-#define XP 9   // can be a digital pin
-
-// Define touchscreen pressure points
-#define MINPRESSURE 10
-#define MAXPRESSURE 1000
-
-// Define touchscreen parameters
-// Use test sketch to refine if necessary
-#define TS_MINX 130
-#define TS_MAXX 905
-
-#define TS_MINY 75
-#define TS_MAXY 930
-
-#define STATUS_X 10
-#define STATUS_Y 65
-
-//Define LED outputs
-#define RED_LED 51
-#define GRN_LED 49
-#define BLU_LED 47
-
-// Define button state variables
-boolean RED_state = 0;
-boolean GRN_state = 0;
-boolean BLU_state = 0;
-
-// Define button array object
-Adafruit_GFX_Button buttons[3];
-
-// Define arrays with button text and colors
-char buttonlabels[3][5] = {"R", "G", "B"};
-uint16_t buttoncolors[6] = {ILI9341_RED, ILI9341_GREEN, ILI9341_BLUE};
-
-// Define object for TFT (LCD)display
-MCUFRIEND_kbv tft;
-
-// Define object for touchscreen
-// Last parameter is X-Y resistance, measure or use 300 if unsure
-TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
-
-void setup(void) {
-
+void setup() {
   Serial.begin(9600);
-  Serial.println(F("TFT LCD test"));
+  Serial.println("ILI9341 Test!"); 
+ 
+  tft.begin();
 
-  pinMode(RED_LED, OUTPUT);
-  pinMode(GRN_LED, OUTPUT);
-  pinMode(BLU_LED, OUTPUT);
+  // read diagnostics (optional but can help debug problems)
+  uint8_t x = tft.readcommand8(ILI9341_RDMODE);
+  Serial.print("Display Power Mode: 0x"); Serial.println(x, HEX);
+  x = tft.readcommand8(ILI9341_RDMADCTL);
+  Serial.print("MADCTL Mode: 0x"); Serial.println(x, HEX);
+  x = tft.readcommand8(ILI9341_RDPIXFMT);
+  Serial.print("Pixel Format: 0x"); Serial.println(x, HEX);
+  x = tft.readcommand8(ILI9341_RDIMGFMT);
+  Serial.print("Image Format: 0x"); Serial.println(x, HEX);
+  x = tft.readcommand8(ILI9341_RDSELFDIAG);
+  Serial.print("Self Diagnostic: 0x"); Serial.println(x, HEX); 
+  
+  Serial.println(F("Benchmark                Time (microseconds)"));
+  delay(10);
+  Serial.print(F("Screen fill              "));
+  Serial.println(testFillScreen());
+  delay(500);
 
+  Serial.print(F("Text                     "));
+  Serial.println(testText());
+  delay(3000);
 
-  tft.reset();
+  Serial.print(F("Lines                    "));
+  Serial.println(testLines(ILI9341_CYAN));
+  delay(500);
 
-  uint16_t identifier = tft.readID();
-  if (identifier == 0x9325) {
-    Serial.println(F("Found ILI9325 LCD driver"));
-  } else if (identifier == 0x9328) {
-    Serial.println(F("Found ILI9328 LCD driver"));
-  } else if (identifier == 0x4535) {
-    Serial.println(F("Found LGDP4535 LCD driver"));
-  } else if (identifier == 0x7575) {
-    Serial.println(F("Found HX8347G LCD driver"));
-  } else if (identifier == 0x9341) {
-    Serial.println(F("*Found ILI9341 LCD driver"));
-  } else if (identifier == 0x7783) {
-    Serial.println(F("Found ST7781 LCD driver"));
-  } else if (identifier == 0x8230) {
-    Serial.println(F("Found UC8230 LCD driver"));
-  }
-  else if (identifier == 0x8357) {
-    Serial.println(F("Found HX8357D LCD driver"));
-  } else if (identifier == 0x0101)
-  {
-    identifier = 0x9341;
-    Serial.println(F("Found 0x9341 LCD driver"));
-  } else if (identifier == 0x9481)
-  {
-    Serial.println(F("Found 0x9481 LCD driver"));
-  }
-  else if (identifier == 0x9486)
-  {
-    Serial.println(F("Found 0x9486 LCD driver"));
-  }
-  else {
-    Serial.print(F("Unknown LCD driver chip: "));
-    Serial.println(identifier, HEX);
-    identifier = 0x9486;
-  }
+  Serial.print(F("Horiz/Vert Lines         "));
+  Serial.println(testFastLines(ILI9341_RED, ILI9341_BLUE));
+  delay(500);
 
-  // Setup the Display
-  tft.begin(identifier);
-  Serial.print("TFT size is "); Serial.print(tft.width()); Serial.print("x"); Serial.println(tft.height());
-  tft.setRotation(0);
-  tft.fillScreen(BLACK);
+  Serial.print(F("Rectangles (outline)     "));
+  Serial.println(testRects(ILI9341_GREEN));
+  delay(500);
 
-  // Draw buttons
-  for (uint8_t row = 0; row < 3; row++) {
-    for (uint8_t col = 0; col < 3; col++) {
-      buttons[col + row * 3].initButton(&tft, BUTTON_X + col * (BUTTON_W + BUTTON_SPACING_X),
-                                        BUTTON_Y + row * (BUTTON_H + BUTTON_SPACING_Y), // x, y, w, h, outline, fill, text
-                                        BUTTON_W, BUTTON_H, ILI9341_WHITE, buttoncolors[col + row * 3], ILI9341_WHITE,
-                                        buttonlabels[col + row * 3], BUTTON_TEXTSIZE);
-      buttons[col + row * 3].drawButton();
-    }
-  }
+  Serial.print(F("Rectangles (filled)      "));
+  Serial.println(testFilledRects(ILI9341_YELLOW, ILI9341_MAGENTA));
+  delay(500);
+
+  Serial.print(F("Circles (filled)         "));
+  Serial.println(testFilledCircles(10, ILI9341_MAGENTA));
+
+  Serial.print(F("Circles (outline)        "));
+  Serial.println(testCircles(10, ILI9341_WHITE));
+  delay(500);
+
+  Serial.print(F("Triangles (outline)      "));
+  Serial.println(testTriangles());
+  delay(500);
+
+  Serial.print(F("Triangles (filled)       "));
+  Serial.println(testFilledTriangles());
+  delay(500);
+
+  Serial.print(F("Rounded rects (outline)  "));
+  Serial.println(testRoundRects());
+  delay(500);
+
+  Serial.print(F("Rounded rects (filled)   "));
+  Serial.println(testFilledRoundRects());
+  delay(500);
+
+  Serial.println(F("Done!"));
 
 }
 
+
 void loop(void) {
+  for(uint8_t rotation=0; rotation<4; rotation++) {
+    tft.setRotation(rotation);
+    testText();
+    delay(1000);
+  }
+}
 
-  digitalWrite(13, HIGH);
-  TSPoint p = ts.getPoint();
-  digitalWrite(13, LOW);
+unsigned long testFillScreen() {
+  unsigned long start = micros();
+  tft.fillScreen(ILI9341_BLACK);
+  yield();
+  tft.fillScreen(ILI9341_RED);
+  yield();
+  tft.fillScreen(ILI9341_GREEN);
+  yield();
+  tft.fillScreen(ILI9341_BLUE);
+  yield();
+  tft.fillScreen(ILI9341_BLACK);
+  yield();
+  return micros() - start;
+}
 
-  // if sharing pins, you'll need to fix the directions of the touchscreen pins
-  pinMode(XM, OUTPUT);
-  pinMode(YP, OUTPUT);
+unsigned long testText() {
+  tft.fillScreen(ILI9341_BLACK);
+  unsigned long start = micros();
+  tft.setCursor(0, 0);
+  tft.setTextColor(ILI9341_WHITE);  tft.setTextSize(1);
+  tft.println("Hello World!");
+  tft.setTextColor(ILI9341_YELLOW); tft.setTextSize(2);
+  tft.println(1234.56);
+  tft.setTextColor(ILI9341_RED);    tft.setTextSize(3);
+  tft.println(0xDEADBEEF, HEX);
+  tft.println();
+  tft.setTextColor(ILI9341_GREEN);
+  tft.setTextSize(5);
+  tft.println("Groop");
+  tft.setTextSize(2);
+  tft.println("I implore thee,");
+  tft.setTextSize(1);
+  tft.println("my foonting turlingdromes.");
+  tft.println("And hooptiously drangle me");
+  tft.println("with crinkly bindlewurdles,");
+  tft.println("Or I will rend thee");
+  tft.println("in the gobberwarts");
+  tft.println("with my blurglecruncheon,");
+  tft.println("see if I don't!");
+  return micros() - start;
+}
 
+unsigned long testLines(uint16_t color) {
+  unsigned long start, t;
+  int           x1, y1, x2, y2,
+                w = tft.width(),
+                h = tft.height();
 
-  // There is a minimum pressure that is consider valid
-  // Pressure of 0 means no pressing
+  tft.fillScreen(ILI9341_BLACK);
+  yield();
+  
+  x1 = y1 = 0;
+  y2    = h - 1;
+  start = micros();
+  for(x2=0; x2<w; x2+=6) tft.drawLine(x1, y1, x2, y2, color);
+  x2    = w - 1;
+  for(y2=0; y2<h; y2+=6) tft.drawLine(x1, y1, x2, y2, color);
+  t     = micros() - start; // fillScreen doesn't count against timing
 
-  if (p.z > MINPRESSURE && p.z < MAXPRESSURE)
-  {
+  yield();
+  tft.fillScreen(ILI9341_BLACK);
+  yield();
 
-    p.x = p.x + p.y;
-    p.y = p.x - p.y;
-    p.x = p.x - p.y;
-    p.x = map(p.x, TS_MINX, TS_MAXX, tft.width(), 0);
-    p.y = tft.height() - (map(p.y, TS_MINY, TS_MAXY, tft.height(), 0));
+  x1    = w - 1;
+  y1    = 0;
+  y2    = h - 1;
+  start = micros();
+  for(x2=0; x2<w; x2+=6) tft.drawLine(x1, y1, x2, y2, color);
+  x2    = 0;
+  for(y2=0; y2<h; y2+=6) tft.drawLine(x1, y1, x2, y2, color);
+  t    += micros() - start;
 
+  yield();
+  tft.fillScreen(ILI9341_BLACK);
+  yield();
+
+  x1    = 0;
+  y1    = h - 1;
+  y2    = 0;
+  start = micros();
+  for(x2=0; x2<w; x2+=6) tft.drawLine(x1, y1, x2, y2, color);
+  x2    = w - 1;
+  for(y2=0; y2<h; y2+=6) tft.drawLine(x1, y1, x2, y2, color);
+  t    += micros() - start;
+
+  yield();
+  tft.fillScreen(ILI9341_BLACK);
+  yield();
+
+  x1    = w - 1;
+  y1    = h - 1;
+  y2    = 0;
+  start = micros();
+  for(x2=0; x2<w; x2+=6) tft.drawLine(x1, y1, x2, y2, color);
+  x2    = 0;
+  for(y2=0; y2<h; y2+=6) tft.drawLine(x1, y1, x2, y2, color);
+
+  yield();
+  return micros() - start;
+}
+
+unsigned long testFastLines(uint16_t color1, uint16_t color2) {
+  unsigned long start;
+  int           x, y, w = tft.width(), h = tft.height();
+
+  tft.fillScreen(ILI9341_BLACK);
+  start = micros();
+  for(y=0; y<h; y+=5) tft.drawFastHLine(0, y, w, color1);
+  for(x=0; x<w; x+=5) tft.drawFastVLine(x, 0, h, color2);
+
+  return micros() - start;
+}
+
+unsigned long testRects(uint16_t color) {
+  unsigned long start;
+  int           n, i, i2,
+                cx = tft.width()  / 2,
+                cy = tft.height() / 2;
+
+  tft.fillScreen(ILI9341_BLACK);
+  n     = min(tft.width(), tft.height());
+  start = micros();
+  for(i=2; i<n; i+=6) {
+    i2 = i / 2;
+    tft.drawRect(cx-i2, cy-i2, i, i, color);
   }
 
-  // Go thru all the buttons, checking if they were pressed
-  for (uint8_t b = 0; b < 3; b++) {
-    if ((buttons[b].contains(p.x, p.y)) && p.x > 10)
-    {
-      Serial.print("Pressing: "); Serial.println(b);
-      buttons[b].press(true);  // tell the button it is pressed
+  return micros() - start;
+}
 
-      //Button has been pressed
-      if (b == 0) {
-        // Toggle Red status
-        RED_state = !RED_state;
-      }
-      if (b == 1) {
-        // Toggle Green status
-        GRN_state = !GRN_state;
-      }
-      if (b == 2) {
-        // Toggle Blue status
-        BLU_state = !BLU_state;
-      }
+unsigned long testFilledRects(uint16_t color1, uint16_t color2) {
+  unsigned long start, t = 0;
+  int           n, i, i2,
+                cx = tft.width()  / 2 - 1,
+                cy = tft.height() / 2 - 1;
 
-      // Button Display
-      if (RED_state == 1) {
-        digitalWrite(RED_LED, HIGH);
-      } else {
-        digitalWrite(RED_LED, LOW);
-      }
-      if (GRN_state == 1) {
-        digitalWrite(GRN_LED, HIGH);
-      } else {
-        digitalWrite(GRN_LED, LOW);
-      }
-      if (BLU_state == 1) {
-        digitalWrite(BLU_LED, HIGH);
-      } else {
-        digitalWrite(BLU_LED, LOW);
-      }
+  tft.fillScreen(ILI9341_BLACK);
+  n = min(tft.width(), tft.height());
+  for(i=n; i>0; i-=6) {
+    i2    = i / 2;
+    start = micros();
+    tft.fillRect(cx-i2, cy-i2, i, i, color1);
+    t    += micros() - start;
+    // Outlines are not included in timing results
+    tft.drawRect(cx-i2, cy-i2, i, i, color2);
+    yield();
+  }
 
-    } else {
-      buttons[b].press(false);  // tell the button it is NOT pressed
+  return t;
+}
+
+unsigned long testFilledCircles(uint8_t radius, uint16_t color) {
+  unsigned long start;
+  int x, y, w = tft.width(), h = tft.height(), r2 = radius * 2;
+
+  tft.fillScreen(ILI9341_BLACK);
+  start = micros();
+  for(x=radius; x<w; x+=r2) {
+    for(y=radius; y<h; y+=r2) {
+      tft.fillCircle(x, y, radius, color);
     }
   }
 
-  // now we can ask the buttons if their state has changed
-  for (uint8_t b = 0; b < 3; b++) {
-    if (buttons[b].justReleased()) {
-      Serial.print("Released: "); Serial.println(b);
-      buttons[b].drawButton();  // draw normal
-    }
+  return micros() - start;
+}
 
-    if (buttons[b].justPressed()) {
-      buttons[b].drawButton(true);  // draw invert!
+unsigned long testCircles(uint8_t radius, uint16_t color) {
+  unsigned long start;
+  int           x, y, r2 = radius * 2,
+                w = tft.width()  + radius,
+                h = tft.height() + radius;
 
-
-      delay(100); // UI debouncing
+  // Screen is not cleared for this one -- this is
+  // intentional and does not affect the reported time.
+  start = micros();
+  for(x=0; x<w; x+=r2) {
+    for(y=0; y<h; y+=r2) {
+      tft.drawCircle(x, y, radius, color);
     }
   }
 
+  return micros() - start;
+}
+
+unsigned long testTriangles() {
+  unsigned long start;
+  int           n, i, cx = tft.width()  / 2 - 1,
+                      cy = tft.height() / 2 - 1;
+
+  tft.fillScreen(ILI9341_BLACK);
+  n     = min(cx, cy);
+  start = micros();
+  for(i=0; i<n; i+=5) {
+    tft.drawTriangle(
+      cx    , cy - i, // peak
+      cx - i, cy + i, // bottom left
+      cx + i, cy + i, // bottom right
+      tft.color565(i, i, i));
+  }
+
+  return micros() - start;
+}
+
+unsigned long testFilledTriangles() {
+  unsigned long start, t = 0;
+  int           i, cx = tft.width()  / 2 - 1,
+                   cy = tft.height() / 2 - 1;
+
+  tft.fillScreen(ILI9341_BLACK);
+  start = micros();
+  for(i=min(cx,cy); i>10; i-=5) {
+    start = micros();
+    tft.fillTriangle(cx, cy - i, cx - i, cy + i, cx + i, cy + i,
+      tft.color565(0, i*10, i*10));
+    t += micros() - start;
+    tft.drawTriangle(cx, cy - i, cx - i, cy + i, cx + i, cy + i,
+      tft.color565(i*10, i*10, 0));
+    yield();
+  }
+
+  return t;
+}
+
+unsigned long testRoundRects() {
+  unsigned long start;
+  int           w, i, i2,
+                cx = tft.width()  / 2 - 1,
+                cy = tft.height() / 2 - 1;
+
+  tft.fillScreen(ILI9341_BLACK);
+  w     = min(tft.width(), tft.height());
+  start = micros();
+  for(i=0; i<w; i+=6) {
+    i2 = i / 2;
+    tft.drawRoundRect(cx-i2, cy-i2, i, i, i/8, tft.color565(i, 0, 0));
+  }
+
+  return micros() - start;
+}
+
+unsigned long testFilledRoundRects() {
+  unsigned long start;
+  int           i, i2,
+                cx = tft.width()  / 2 - 1,
+                cy = tft.height() / 2 - 1;
+
+  tft.fillScreen(ILI9341_BLACK);
+  start = micros();
+  for(i=min(tft.width(), tft.height()); i>20; i-=6) {
+    i2 = i / 2;
+    tft.fillRoundRect(cx-i2, cy-i2, i, i, i/8, tft.color565(0, i, 0));
+    yield();
+  }
+
+  return micros() - start;
 }
