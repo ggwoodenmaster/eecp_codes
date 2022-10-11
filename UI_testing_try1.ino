@@ -1,7 +1,7 @@
-
+#include <SPI.h>
 #include <Adafruit_GFX.h>    // Adafruit's core graphics library
-#include <Adafruit_TFTLCD.h> // Adafruit's hardware-specific library
-#include <TouchScreen.h>     //Touchscreen library
+#include <Adafruit_ILI9341.h> // Adafruit's hardware-specific library: for drawing
+#include <Adafruit_FT6206.h>     //Touchscreen library: for touchscreen sensing
 #include <Fonts/Org_01.h>    //Include a different font
 #include <EEPROM.h>         //Include the EEPROM library to score the highscore
 
@@ -19,11 +19,11 @@ bool resetsensed = false;
 #define TS_MAXX 920
 #define TS_MAXY 940
 //Create the touchscreen object
-TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);  //(data,data,data,data,sensitivity);
+Adafruit_FT6206 ts = Adafruit_FT6206();
 
 //Some of the tft pins
-#define LCD_CS A3
-#define LCD_CD A2
+#define LCD_CS 10
+#define LCD_CD 9
 #define LCD_WR A1
 #define LCD_RD A0
 // Optional, used to reset the display
@@ -37,7 +37,7 @@ TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);  //(data,data,data,data,sensi
 #define BAR_WIDTH 30
 
 //Create the tft object
-Adafruit_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
+Adafruit_ILI9341 tft(LCD_CS, LCD_CD);
 
 // Define some TFT readable colour codes to human readable names
 #define BLACK   0x0000
@@ -130,14 +130,14 @@ void drawHome()
 
 void setup()
 {
-  tft.reset();
-  tft.begin(tft.readID());
+  // tft.reset();
+  tft.begin();
   Serial.begin(9600);
   Serial.println();
   Serial.print("reading id...");
   delay(500);
-  Serial.println(tft.readID(), HEX);
-  tft.fillScreen(BLACK);
+  // Serial.println(tft.readID(), HEX);
+  tft.fillScreen(ILI9341_BLACK);
   tft.setRotation(1);
 
   currentpage = 0;
@@ -169,7 +169,7 @@ void loop()
 {
 
   digitalWrite(13, HIGH);
-  TSPoint p = ts.getPoint();     // Read touchscreen
+  TS_Point p = ts.getPoint();     // Read touchscreen
   digitalWrite(13, LOW);
 
   pinMode(XM, OUTPUT);
@@ -604,7 +604,7 @@ void drawWing3(int x, int y) {
 void ResetScore()
 {
   digitalWrite(13, HIGH);
-  TSPoint p = ts.getPoint();     // Read touchscreen
+  TS_Point p = ts.getPoint();     // Read touchscreen
   digitalWrite(13, LOW);
 
   pinMode(XM, OUTPUT);
@@ -627,7 +627,7 @@ void ResetScore()
 void sensereset()
 {
   digitalWrite(13, HIGH);
-  TSPoint p = ts.getPoint();     // Read touchscreen
+  TS_Point p = ts.getPoint();     // Read touchscreen
   digitalWrite(13, LOW);
 
   pinMode(XM, OUTPUT);
@@ -692,7 +692,7 @@ void startGame() {
 void senseBack()
 {
   digitalWrite(13, HIGH);
-  TSPoint p = ts.getPoint();     // Read touchscreen
+  TS_Point p = ts.getPoint();     // Read touchscreen
   digitalWrite(13, LOW);
 
   pinMode(XM, OUTPUT);

@@ -1,6 +1,6 @@
 {
     "board": "arduino:avr:mega",
-    "port": "COM1",
+    "port": "COM3",
     "programmer": "arduino:avrispmkii",
     "output": "C:\\Users\\Pkelven\\Desktop\\EG4301\\Build\\desktop_build_1",
     "sketch": "UI_testing_try1.ino"
