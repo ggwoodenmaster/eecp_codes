@@ -19,7 +19,7 @@
 #define YELLOW  0xFFE0
 #define WHITE   0xFFFF
 
-int CurrentPage;
+int CurrentPage = 0;
 
 Adafruit_FT6206 ts = Adafruit_FT6206();
 Adafruit_ILI9341 tft = Adafruit_ILI9341(LCD_CS, LCD_DC);
@@ -36,25 +36,50 @@ void setup() {
     tft.fillScreen(CYAN);
     delay(500);
     drawHome();
-    CurrentPage = 0;
 }
 
 void loop() {
-    //Serial.println(ts.touched());
     if (ts.touched()) {
-        Serial.println("Touched!");
         TS_Point p = ts.getPoint();
+        delay(500);
         int y = p.x;
         p.y = map(p.y, 0, 320, 320, 0);
         int x = p.y;
         Serial.print("Current x = "); Serial.println(x);
         Serial.print("Current y = "); Serial.println(y);
         Serial.print("Current z = "); Serial.println(p.z);
-        delay(500);
+        Serial.print("CurrentPage = "); Serial.println(CurrentPage);
             if (CurrentPage == 0) {
                 if (x>= 60 && x<= 260 && y>= 180 && y<= 220) {
                     CurrentPage = 1;
                     drawPage1();
+                    delay(500);
+                } else if (x>= 60 && x<= 260 && y>= 130 && y<= 170) {
+                    CurrentPage = 2;
+                    drawPage2();
+                    delay(500);
+                } else if (x>= 60 && x<= 260 && y>= 80 && y<= 120) {
+                    CurrentPage = 3;
+                    drawPage3();
+                    delay(500);
+                }
+            } else if (CurrentPage == 1) {
+                if (x>= 60 && x<= 260 && y>= 180 && y<= 220) {
+                    CurrentPage = 0;
+                    drawHome();
+                    delay(500);
+                }
+            } else if (CurrentPage == 2) {
+                if (x>= 60 && x<= 260 && y>= 180 && y<= 220) {
+                    CurrentPage = 0;
+                    drawHome();
+                    delay(500);
+                }
+            } else if (CurrentPage == 3) {
+                if (x>= 60 && x<= 260 && y>= 180 && y<= 220) {
+                    CurrentPage = 0;
+                    drawHome();
+                    delay(500);
                 }
             }
     }
@@ -62,16 +87,16 @@ void loop() {
 
 void drawHome() {
     tft.fillScreen(BLACK);
-    tft.drawRoundRect(0, 0, 319, 240, 8, WHITE);    //Page border
+    tft.drawRoundRect(0, 0, 319, 240, 8, WHITE);    // Page border
 
     tft.fillRoundRect(60, 180, 200, 40, 8, RED);
-    tft.drawRoundRect(60, 180, 200, 40, 8, WHITE);  
+    tft.drawRoundRect(60, 180, 200, 40, 8, WHITE);  // button 3
 
     tft.fillRoundRect(60, 130, 200, 40, 8, RED);    
-    tft.drawRoundRect(60, 130, 200, 40, 8, WHITE);
+    tft.drawRoundRect(60, 130, 200, 40, 8, WHITE);  // button 2
 
     tft.fillRoundRect(60, 80, 200, 40, 8, RED);
-    tft.drawRoundRect(60, 80, 200, 40, 8, WHITE);  
+    tft.drawRoundRect(60, 80, 200, 40, 8, WHITE);   // button 1
 
     tft.setCursor(60, 20);
     tft.setTextSize(2);
@@ -98,5 +123,21 @@ void drawPage1() {
     tft.fillRoundRect(60, 180, 200, 40, 8, RED);
     tft.drawRoundRect(60, 180, 200, 40, 8, WHITE);
     tft.setCursor(65, 195);
-    tft.print("BACK");
+    tft.print("BACK1");
+}
+
+void drawPage2() {
+    tft.fillScreen(BLACK);
+    tft.fillRoundRect(60, 180, 200, 40, 8, RED);
+    tft.drawRoundRect(60, 180, 200, 40, 8, WHITE);
+    tft.setCursor(65, 195);
+    tft.print("BACK2");
+}
+
+void drawPage3() {
+    tft.fillScreen(BLACK);
+    tft.fillRoundRect(60, 180, 200, 40, 8, RED);
+    tft.drawRoundRect(60, 180, 200, 40, 8, WHITE);
+    tft.setCursor(65, 195);
+    tft.print("BACK3");
 }
