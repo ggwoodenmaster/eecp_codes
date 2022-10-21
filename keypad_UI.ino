@@ -29,8 +29,12 @@
 #define ORANGE       0xFD20  /* 255, 165,   0 */
 #define GREENYELLOW  0xAFE5  /* 173, 255,  47 */
 #define PINK         0xF81F  /* 255,   0, 255 */
-
-int CurrentPage = 0;
+String symbol[4][3] = {
+    {"1", "2", "3"},
+    {"4", "5", "6"},
+    {"7", "8", "9"},
+    {"C", "0", "OK"}
+};
 
 Adafruit_FT6206 ts = Adafruit_FT6206();
 Adafruit_ILI9341 tft = Adafruit_ILI9341(LCD_CS, LCD_DC);
@@ -44,10 +48,38 @@ void setup() {
     Serial.println("Touchscreen started.");
   } 
     tft.setRotation(1);
-    tft.fillScreen(CYAN);
+    tft.fillScreen(BLACK);
     delay(500);
+    drawUI();
 }
 
 void loop() {
+    
+}
 
+void drawUI() {
+    tft.fillRect(0, 0, 300, 30, GREEN);
+    tft.fillRect(0, 30, 300, 30, LIGHTGREY);
+    tft.setCursor(0, 0);
+    tft.setTextSize(3);
+    tft.setTextColor(RED);
+    tft.println("Setting para = ");
+    tft.setCursor(0, 30);
+    tft.println("500");
+    tft.fillRect(0, 60, 300, 180, BLUE);
+
+    tft.setTextSize(4);
+    tft.setTextColor(WHITE);
+    for (int j=0; j<3; j++) { // i is the first argument; j is the second argument
+        for (int i=0; i<4; i++) {
+        tft.setCursor(0 + 100 * j, 60 + 45 * i);
+        tft.println(symbol[i][j]);
+        }
+    }
+    for (int h=105; h<=240; h+=45) {
+        tft.drawFastHLine(0, h, 300, WHITE);
+    }
+    for (int v=0; v<=300; v+=100) {
+        tft.drawFastVLine(v, 60, 200, WHITE);
+    }
 }
