@@ -86,6 +86,8 @@ void loop() {
             number = (number * 10) + 0;
         } else if (x>= 200 && x< 300 && y>= 195 && y < 240) {
             enter = true;
+            Serial.print("enter = ");
+            Serial.println(enter);
         }
         tft.fillRect(0, 30, 300, 30, LIGHTGREY);
         tft.setCursor(0, 30);
