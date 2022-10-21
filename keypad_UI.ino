@@ -35,6 +35,8 @@ String symbol[4][3] = {
     {"7", "8", "9"},
     {"C", "0", "OK"}
 };
+long number = 0;
+boolean enter = false;
 
 Adafruit_FT6206 ts = Adafruit_FT6206();
 Adafruit_ILI9341 tft = Adafruit_ILI9341(LCD_CS, LCD_DC);
@@ -54,7 +56,43 @@ void setup() {
 }
 
 void loop() {
-    
+    while (ts.touched()) {
+        TS_Point p = ts.getPoint();
+        delay(500);
+        int y = p.x;
+        p.y = map(p.y, 0, 320, 320, 0);
+        int x = p.y;
+        if (x>= 0 && x< 100 && y>= 60 && y < 105) {
+            number = (number * 10) + 1;
+        } else if (x>= 100 && x< 200 && y>= 60 && y < 105) {
+            number = (number * 10) + 2;
+        } else if (x>= 200 && x< 300 && y>= 60 && y < 105) {
+            number = (number * 10) + 3;
+        } else if (x>= 0 && x< 100 && y>= 105 && y < 150) {
+            number = (number * 10) + 4;
+        } else if (x>= 100 && x< 200 && y>= 105 && y < 150) {
+            number = (number * 10) + 5;
+        } else if (x>= 200 && x< 300 && y>= 105 && y < 150) {
+            number = (number * 10) + 6;
+        } else if (x>= 0 && x< 100 && y>= 150 && y < 195) {
+            number = (number * 10) + 7;
+        } else if (x>= 100 && x< 200 && y>= 150 && y < 195) {
+            number = (number * 10) + 8;
+        } else if (x>= 200 && x< 300 && y>= 150 && y < 195) {
+            number = (number * 10) + 9;
+        } else if (x>= 0 && x< 100 && y>= 195 && y < 240) {
+            number = 0;
+        } else if (x>= 100 && x< 200 && y>= 195 && y < 240) {
+            number = (number * 10) + 0;
+        } else if (x>= 200 && x< 300 && y>= 195 && y < 240) {
+            enter = true;
+        }
+        tft.fillRect(0, 30, 300, 30, LIGHTGREY);
+        tft.setCursor(0, 30);
+        tft.setTextSize(3);
+        tft.setTextColor(RED);
+        tft.println(number);
+    }
 }
 
 void drawUI() {
@@ -65,7 +103,7 @@ void drawUI() {
     tft.setTextColor(RED);
     tft.println("Setting para = ");
     tft.setCursor(0, 30);
-    tft.println("500");
+    tft.println(number);
     tft.fillRect(0, 60, 300, 180, BLUE);
 
     tft.setTextSize(4);
