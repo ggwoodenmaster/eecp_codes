@@ -37,7 +37,9 @@ String symbol[4][3] = {
     {"C", "0", "OK"}
 };
 
-long number = 0;
+long number_pressure = 0;
+long number_onoff = 0;
+long number_cycle = 0;
 int CurrentPage = 0;
 
 Adafruit_FT6206 ts = Adafruit_FT6206();
@@ -70,51 +72,24 @@ void loop() {
         Serial.print("CurrentPage = "); Serial.println(CurrentPage);
         if (CurrentPage == 0) {
             if (x>= 60 && x<= 260 && y>= 180 && y<= 220) { // button 3
-                CurrentPage = 1;
-                drawKeypad("Pressure = ");
+                CurrentPage = 3;
+                drawKeypad("Pressure = ", number_pressure);
                 delay(500);
             } else if (x>= 60 && x<= 260 && y>= 130 && y<= 170) { // button 2
                 CurrentPage = 2;
-                drawKeypad("ON/OFF = ");
+                drawKeypad("ON/OFF = ", number_onoff);
                 delay(500);
             } else if (x>= 60 && x<= 260 && y>= 80 && y<= 120) { // button 1
-                CurrentPage = 3;
-                drawKeypad("Cycle = ");
+                CurrentPage = 1;
+                drawKeypad("Cycle = ", number_cycle);
                 delay(500);
             }
-        } else if (CurrentPage == 1 || CurrentPage == 2 || CurrentPage == 3) {
-            if (x>= 0 && x< 100 && y>= 60 && y < 105) {
-                number = (number * 10) + 1;
-            } else if (x>= 100 && x< 200 && y>= 60 && y < 105) {
-                number = (number * 10) + 2;
-            } else if (x>= 200 && x< 300 && y>= 60 && y < 105) {
-                number = (number * 10) + 3;
-            } else if (x>= 0 && x< 100 && y>= 105 && y < 150) {
-                number = (number * 10) + 4;
-            } else if (x>= 100 && x< 200 && y>= 105 && y < 150) {
-                number = (number * 10) + 5;
-            } else if (x>= 200 && x< 300 && y>= 105 && y < 150) {
-                number = (number * 10) + 6;
-            } else if (x>= 0 && x< 100 && y>= 150 && y < 195) {
-                number = (number * 10) + 7;
-            } else if (x>= 100 && x< 200 && y>= 150 && y < 195) {
-                number = (number * 10) + 8;
-            } else if (x>= 200 && x< 300 && y>= 150 && y < 195) {
-                number = (number * 10) + 9;
-            } else if (x>= 0 && x< 100 && y>= 195 && y < 240) {
-                number = 0;
-            } else if (x>= 100 && x< 200 && y>= 195 && y < 240) {
-                number = (number * 10) + 0;
-            } 
-            tft.fillRect(0, 30, 300, 30, LIGHTGREY);
-            tft.setCursor(0, 30);
-            tft.setTextSize(3);
-            tft.setTextColor(RED);
-            tft.println(number);
-            if (x>= 200 && x< 300 && y>= 195 && y < 240) {
-                CurrentPage = 0;
-                drawHome();
-            }
+        } else if (CurrentPage == 3) {
+            number_pressure = changeNumber(number_pressure, x, y);
+        } else if (CurrentPage == 2) {
+            number_onoff = changeNumber(number_onoff, x, y);
+        } else if (CurrentPage == 1) {
+            number_cycle = changeNumber(number_cycle, x, y);
         }
     }
 }
@@ -150,11 +125,9 @@ void drawHome() {
 
     tft.setCursor(65, 95);
     tft.print("Set cycle"); // button 1
-
-    number = 0;
 }
 
-void drawKeypad(String prompt) {
+void drawKeypad(String prompt, long number) {
     tft.fillRect(0, 0, 300, 30, GREEN);
     tft.fillRect(0, 30, 300, 30, LIGHTGREY);
     tft.setCursor(0, 0);
@@ -179,4 +152,40 @@ void drawKeypad(String prompt) {
     for (int v=0; v<=300; v+=100) {
         tft.drawFastVLine(v, 60, 200, WHITE);
     }
+}
+
+long changeNumber(long number, int x, int y) {
+    if (x>= 0 && x< 100 && y>= 60 && y < 105) {
+        number = (number * 10) + 1;
+    } else if (x>= 100 && x< 200 && y>= 60 && y < 105) {
+        number = (number * 10) + 2;
+    } else if (x>= 200 && x< 300 && y>= 60 && y < 105) {
+        number = (number * 10) + 3;
+    } else if (x>= 0 && x< 100 && y>= 105 && y < 150) {
+        number = (number * 10) + 4;
+    } else if (x>= 100 && x< 200 && y>= 105 && y < 150) {
+        number = (number * 10) + 5;
+    } else if (x>= 200 && x< 300 && y>= 105 && y < 150) {
+        number = (number * 10) + 6;
+    } else if (x>= 0 && x< 100 && y>= 150 && y < 195) {
+        number = (number * 10) + 7;
+    } else if (x>= 100 && x< 200 && y>= 150 && y < 195) {
+        number = (number * 10) + 8;
+    } else if (x>= 200 && x< 300 && y>= 150 && y < 195) {
+        number = (number * 10) + 9;
+    } else if (x>= 0 && x< 100 && y>= 195 && y < 240) {
+        number = 0;
+    } else if (x>= 100 && x< 200 && y>= 195 && y < 240) {
+        number = (number * 10) + 0;
+    } 
+    tft.fillRect(0, 30, 300, 30, LIGHTGREY);
+    tft.setCursor(0, 30);
+    tft.setTextSize(3);
+    tft.setTextColor(RED);
+    tft.println(number);
+    if (x>= 200 && x< 300 && y>= 195 && y < 240) {
+        CurrentPage = 0;
+        drawHome();
+    }
+    return number;
 }
