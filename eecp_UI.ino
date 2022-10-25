@@ -47,17 +47,18 @@ Adafruit_FT6206 ts = Adafruit_FT6206();
 Adafruit_ILI9341 tft = Adafruit_ILI9341(LCD_CS, LCD_DC);
 
 void setup() {
-  Serial.begin(9600);
-  tft.begin();
-  if (!ts.begin(40)) { 
-    Serial.println("Unable to start touchscreen.");
-  } else { 
-    Serial.println("Touchscreen started.");
-  } 
-    tft.setRotation(1);
-    tft.fillScreen(BLACK);
-    delay(500);
-    drawHome();
+    pinMode(40, OUTPUT);
+    Serial.begin(9600);
+    tft.begin();
+    if (!ts.begin(40)) { 
+        Serial.println("Unable to start touchscreen.");
+    } else { 
+        Serial.println("Touchscreen started.");
+    } 
+        tft.setRotation(1);
+        tft.fillScreen(BLACK);
+        delay(500);
+        drawHome();
 }
 
 void loop() {
@@ -74,7 +75,7 @@ void loop() {
         if (CurrentPage == 0) {
             if (x>= 250 && x<= 300 && y>= 180 && y<= 220) { // button 4
                 CurrentPage = 4;
-                drawRunpage();
+                drawRunPage();
                 delay(500);
             } else if (x>= 30 && x<= 230 && y>= 180 && y<= 220) { // button 3
                 CurrentPage = 3;
@@ -182,25 +183,25 @@ void drawKeypad(String prompt, long number) {
 long changeNumber(long number, int x, int y) {
     if (x>= 0 && x< 100 && y>= 60 && y < 105) {
         number = (number * 10) + 1;
-    } else if (x>= 100 && x< 200 && y>= 60 && y < 105) {
+    } else if (x>= 100 && x< 200 && y>= 60 && y< 105) {
         number = (number * 10) + 2;
-    } else if (x>= 200 && x< 300 && y>= 60 && y < 105) {
+    } else if (x>= 200 && x< 300 && y>= 60 && y< 105) {
         number = (number * 10) + 3;
-    } else if (x>= 0 && x< 100 && y>= 105 && y < 150) {
+    } else if (x>= 0 && x< 100 && y>= 105 && y< 150) {
         number = (number * 10) + 4;
-    } else if (x>= 100 && x< 200 && y>= 105 && y < 150) {
+    } else if (x>= 100 && x< 200 && y>= 105 && y< 150) {
         number = (number * 10) + 5;
-    } else if (x>= 200 && x< 300 && y>= 105 && y < 150) {
+    } else if (x>= 200 && x< 300 && y>= 105 && y< 150) {
         number = (number * 10) + 6;
-    } else if (x>= 0 && x< 100 && y>= 150 && y < 195) {
+    } else if (x>= 0 && x< 100 && y>= 150 && y< 195) {
         number = (number * 10) + 7;
-    } else if (x>= 100 && x< 200 && y>= 150 && y < 195) {
+    } else if (x>= 100 && x< 200 && y>= 150 && y< 195) {
         number = (number * 10) + 8;
-    } else if (x>= 200 && x< 300 && y>= 150 && y < 195) {
+    } else if (x>= 200 && x< 300 && y>= 150 && y< 195) {
         number = (number * 10) + 9;
-    } else if (x>= 0 && x< 100 && y>= 195 && y < 240) {
+    } else if (x>= 0 && x< 100 && y>= 195 && y< 240) {
         number = 0;
-    } else if (x>= 100 && x< 200 && y>= 195 && y < 240) {
+    } else if (x>= 100 && x< 200 && y>= 195 && y< 240) {
         number = (number * 10) + 0;
     } 
     tft.fillRect(0, 30, 300, 30, LIGHTGREY);
@@ -208,13 +209,99 @@ long changeNumber(long number, int x, int y) {
     tft.setTextSize(3);
     tft.setTextColor(RED);
     tft.println(number);
-    if (x>= 200 && x< 300 && y>= 195 && y < 240) {
+    if (x>= 200 && x< 300 && y>= 195 && y< 240) {
         CurrentPage = 0;
         drawHome();
     }
     return number;
 }
 
-void drawRunpage() {
+void drawRunPage() {
+    tft.fillScreen(BLACK);
+    tft.fillRect(0, 0, 300, 30, GREEN); // operating bar
+    tft.fillRect(0, 30, 300, 30, LIGHTGREY);
+    tft.fillRect(0, 60, 150, 30, YELLOW); // current cycle
+    tft.fillRect(150, 60, 150, 30, RED);
+    tft.fillRect(0, 90, 300, 30, LIGHTGREY); // ON/OFF text
+    tft.fillRect(0, 120, 150, 30, YELLOW); // current time
+    tft.fillRect(150, 120, 150, 30, RED); // total time
+    tft.setTextSize(3);
+    tft.setTextColor(BLACK);
+    tft.setCursor(0, 0);
+    tft.print("Operating...");
+    tft.setCursor(0, 30);
+    tft.print("Cycle");
+    tft.setCursor(0, 60);
+    tft.print("CC"); // current cycle
+    tft.setCursor(150, 60);
+    tft.print(number_cycle); // total cycle
+    tft.setCursor(0, 90);
+    tft.print("Status - ");
+    tft.setCursor(160, 90);
+    tft.print("ON"); // ON/OFF
+    tft.setCursor(0, 120);
+    tft.print("SS"); // current time
+    tft.setCursor(150, 120);
+    tft.print("NN"); // total time   
+    long start_time = millis();
+    Serial.print("start_time = "); Serial.println(start_time);
+    Serial.print("millis() = "); Serial.println(millis());
+    for (int i= 1; i<= number_cycle; i++) {
+        refreshCurrentCycle(i);
+        digitalWrite(40, HIGH);
+        refreshOnOFFText("ON");
+        refreshOnTotalTime(number_on);
+        while ((millis() - start_time) < (number_on * 60 * 1000)) { // ON time
+             refreshCurrentTime((millis() - start_time) / 1000.0 / 60.0);
+             //Serial.println((millis() - start_time));
+             Serial.println((millis() - start_time) / 1000.0 / 60.0, 2);
+             delay(50);
+        }
+        start_time = millis(); // refreshing time mark for OFF
+        digitalWrite(40, LOW);
+        refreshOnOFFText("OFF");
+        refreshOnTotalTime(number_off);
+        while ((millis() - start_time) < (number_off * 60 * 1000)) { // OFF time
+            refreshCurrentTime((millis() - start_time) / 1000.0 / 60.0);
+            Serial.println((millis() - start_time) / 1000.0 / 60.0, 2);
+            delay(50);
+        }
+        start_time = millis(); // refreshing time mark for ON
+    }
+    CurrentPage = 0;
+    drawHome();
+}
 
+void refreshCurrentCycle(long value) {
+    tft.setTextSize(3);
+    tft.setTextColor(BLACK);
+    tft.fillRect(0, 60, 150, 30, YELLOW);
+    tft.setCursor(0, 60);
+    tft.print(value);
+}
+
+void refreshCurrentTime(float value) {
+    tft.setTextSize(3);
+    tft.setTextColor(BLACK);
+    tft.fillRect(0, 120, 150, 30, YELLOW);
+    tft.setCursor(0, 120);
+    tft.print(value, 1);
+}
+
+void refreshOnOFFText(String text) {
+    tft.setTextSize(3);
+    tft.setTextColor(BLACK);
+    tft.fillRect(0, 90, 300, 30, LIGHTGREY);
+    tft.setCursor(0, 90);
+    tft.print("Status - ");
+    tft.setCursor(160, 90);
+    tft.print(text);
+}
+
+void refreshOnTotalTime(long value) {
+    tft.setTextSize(3);
+    tft.setTextColor(BLACK);
+    tft.fillRect(150, 120, 150, 30, RED);
+    tft.setCursor(150, 120);
+    tft.print(value);
 }
