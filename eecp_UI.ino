@@ -71,7 +71,11 @@ void loop() {
         //Serial.print("Current z = "); Serial.println(p.z);
         Serial.print("CurrentPage = "); Serial.println(CurrentPage);
         if (CurrentPage == 0) {
-            if (x>= 60 && x<= 260 && y>= 180 && y<= 220) { // button 3
+            if (x>= 250 && x<= 300 && y>= 180 && y<= 220) {
+                CurrentPage = 4;
+                drawRunpage();
+                delay(500);
+            } else if (x>= 60 && x<= 260 && y>= 180 && y<= 220) { // button 3
                 CurrentPage = 3;
                 drawKeypad("Pressure = ", number_pressure);
                 delay(500);
@@ -98,32 +102,40 @@ void drawHome() {
     tft.fillScreen(BLACK);
     tft.drawRoundRect(0, 0, 319, 240, 8, WHITE);    // Page border
 
-    tft.fillRoundRect(60, 180, 200, 40, 8, RED);
-    tft.drawRoundRect(60, 180, 200, 40, 8, WHITE);  // button 3
+    tft.fillRoundRect(250, 180, 50, 40, 8, GREEN);    // button 4
+    tft.drawRoundRect(250, 180, 50, 40, 8, WHITE);
 
-    tft.fillRoundRect(60, 130, 200, 40, 8, RED);    
-    tft.drawRoundRect(60, 130, 200, 40, 8, WHITE);  // button 2
+    tft.fillRoundRect(30, 180, 200, 40, 8, RED);
+    tft.drawRoundRect(30, 180, 200, 40, 8, WHITE);  // button 3
 
-    tft.fillRoundRect(60, 80, 200, 40, 8, RED);
-    tft.drawRoundRect(60, 80, 200, 40, 8, WHITE);   // button 1
+    tft.fillRoundRect(30, 130, 200, 40, 8, RED);    
+    tft.drawRoundRect(30, 130, 200, 40, 8, WHITE);  // button 2
 
-    tft.setCursor(60, 20);
+    tft.fillRoundRect(30, 80, 200, 40, 8, RED);
+    tft.drawRoundRect(30, 80, 200, 40, 8, WHITE);   // button 1
+
+    tft.setCursor(30, 20);
     tft.setTextSize(2);
     tft.setFont();
     tft.setTextColor(WHITE);
     tft.print("EECP Internal V1.0");
-    tft.setCursor(70, 50);
+    tft.setCursor(40, 50);
     tft.setTextSize(2);
     tft.setTextColor(CYAN);
     tft.print("EG4301 Project");
+    
     tft.setTextColor(BLACK);
-    tft.setCursor(65, 195);
+    
+    tft.setCursor(255, 195);
+    tft.print("Run"); // button 4
+    
+    tft.setCursor(35, 195);
     tft.print("Set pressure"); // button 3
 
-    tft.setCursor(65, 145);
+    tft.setCursor(35, 145);
     tft.print("Set ON-OFF time"); // button 2
 
-    tft.setCursor(65, 95);
+    tft.setCursor(35, 95);
     tft.print("Set cycle"); // button 1
 }
 
@@ -188,4 +200,8 @@ long changeNumber(long number, int x, int y) {
         drawHome();
     }
     return number;
+}
+
+void drawRunpage() {
+
 }
