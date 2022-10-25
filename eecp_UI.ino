@@ -38,9 +38,10 @@ String symbol[4][3] = {
 };
 
 long number_pressure = 0;
-long number_onoff = 0;
+long number_on = 0;
+long number_off = 0;
 long number_cycle = 0;
-int CurrentPage = 0;
+double CurrentPage = 0;
 
 Adafruit_FT6206 ts = Adafruit_FT6206();
 Adafruit_ILI9341 tft = Adafruit_ILI9341(LCD_CS, LCD_DC);
@@ -71,27 +72,33 @@ void loop() {
         //Serial.print("Current z = "); Serial.println(p.z);
         Serial.print("CurrentPage = "); Serial.println(CurrentPage);
         if (CurrentPage == 0) {
-            if (x>= 250 && x<= 300 && y>= 180 && y<= 220) {
+            if (x>= 250 && x<= 300 && y>= 180 && y<= 220) { // button 4
                 CurrentPage = 4;
                 drawRunpage();
                 delay(500);
-            } else if (x>= 60 && x<= 260 && y>= 180 && y<= 220) { // button 3
+            } else if (x>= 30 && x<= 230 && y>= 180 && y<= 220) { // button 3
                 CurrentPage = 3;
                 drawKeypad("Pressure = ", number_pressure);
                 delay(500);
-            } else if (x>= 60 && x<= 260 && y>= 130 && y<= 170) { // button 2
-                CurrentPage = 2;
-                drawKeypad("ON/OFF = ", number_onoff);
+            } else if (x>= 30 && x<= 130 && y>= 130 && y<= 170) { // button 2.2
+                CurrentPage = 2.2;
+                drawKeypad("ON = ", number_on);
                 delay(500);
-            } else if (x>= 60 && x<= 260 && y>= 80 && y<= 120) { // button 1
+            } else if (x>= 130 && x<= 230 && y>= 130 && y<= 170) { // button 2.1
+                CurrentPage = 2.1;
+                drawKeypad("OFF = ", number_off);
+                delay(500);
+            } else if (x>= 30 && x<= 230 && y>= 80 && y<= 120) { // button 1
                 CurrentPage = 1;
                 drawKeypad("Cycle = ", number_cycle);
                 delay(500);
             }
         } else if (CurrentPage == 3) {
             number_pressure = changeNumber(number_pressure, x, y);
-        } else if (CurrentPage == 2) {
-            number_onoff = changeNumber(number_onoff, x, y);
+        } else if (CurrentPage == 2.2) {
+            number_on = changeNumber(number_on, x, y);
+        } else if (CurrentPage == 2.1) {
+            number_off = changeNumber(number_off, x, y);
         } else if (CurrentPage == 1) {
             number_cycle = changeNumber(number_cycle, x, y);
         }
@@ -102,14 +109,17 @@ void drawHome() {
     tft.fillScreen(BLACK);
     tft.drawRoundRect(0, 0, 319, 240, 8, WHITE);    // Page border
 
-    tft.fillRoundRect(250, 180, 50, 40, 8, GREEN);    // button 4
+    tft.fillRoundRect(250, 180, 50, 40, 8, GREEN);  // button 4
     tft.drawRoundRect(250, 180, 50, 40, 8, WHITE);
 
     tft.fillRoundRect(30, 180, 200, 40, 8, RED);
     tft.drawRoundRect(30, 180, 200, 40, 8, WHITE);  // button 3
 
-    tft.fillRoundRect(30, 130, 200, 40, 8, RED);    
-    tft.drawRoundRect(30, 130, 200, 40, 8, WHITE);  // button 2
+    tft.fillRoundRect(30, 130, 100, 40, 8, RED);    
+    tft.drawRoundRect(30, 130, 100, 40, 8, WHITE);  // button 2.2
+
+    tft.fillRoundRect(130, 130, 100, 40, 8, RED);    
+    tft.drawRoundRect(130, 130, 100, 40, 8, WHITE);  // button 2.1
 
     tft.fillRoundRect(30, 80, 200, 40, 8, RED);
     tft.drawRoundRect(30, 80, 200, 40, 8, WHITE);   // button 1
@@ -133,7 +143,10 @@ void drawHome() {
     tft.print("Set pressure"); // button 3
 
     tft.setCursor(35, 145);
-    tft.print("Set ON-OFF time"); // button 2
+    tft.print("Set ON"); // button 2.2
+
+    tft.setCursor(135, 145);
+    tft.print("Set OFF"); // button 2.1
 
     tft.setCursor(35, 95);
     tft.print("Set cycle"); // button 1
