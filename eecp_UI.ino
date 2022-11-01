@@ -47,7 +47,8 @@ Adafruit_FT6206 ts = Adafruit_FT6206();
 Adafruit_ILI9341 tft = Adafruit_ILI9341(LCD_CS, LCD_DC);
 
 void setup() {
-    pinMode(40, OUTPUT);
+    pinMode(40, OUTPUT); // power LED
+    pinMode(A10, INPUT); // pressure sensor intake
     Serial.begin(9600);
     tft.begin();
     if (!ts.begin(40)) { 
@@ -246,26 +247,27 @@ void drawRunPage() {
     tft.print(number_pressure);
 
     long start_time = millis();
-    Serial.print("start_time = "); Serial.println(start_time);
-    Serial.print("millis() = "); Serial.println(millis());
+    //Serial.print("start_time = "); Serial.println(start_time);
+    //Serial.print("millis() = "); Serial.println(millis());
     for (int i= 1; i<= number_cycle; i++) {
         refreshCurrentCycle(i);
         digitalWrite(40, HIGH);
         refreshOnOFFText("ON");
-        refreshOnTotalTime(number_on);
+        refreshTotalTime(number_on);
         while ((millis() - start_time) < (number_on * 60 * 1000)) { // ON time
              refreshCurrentTime((millis() - start_time) / 1000.0 / 60.0);
              //Serial.println((millis() - start_time));
-             Serial.println((millis() - start_time) / 1000.0 / 60.0, 2);
+             //Serial.println((millis() - start_time) / 1000.0 / 60.0, 2);
+             refreshCurrentPressure(getPressure());
              delay(50);
         }
         start_time = millis(); // refreshing time mark for OFF
         digitalWrite(40, LOW);
         refreshOnOFFText("OFF");
-        refreshOnTotalTime(number_off);
+        refreshTotalTime(number_off);
         while ((millis() - start_time) < (number_off * 60 * 1000)) { // OFF time
             refreshCurrentTime((millis() - start_time) / 1000.0 / 60.0);
-            Serial.println((millis() - start_time) / 1000.0 / 60.0, 2);
+            //Serial.println((millis() - start_time) / 1000.0 / 60.0, 2);
             delay(50);
         }
         start_time = millis(); // refreshing time mark for ON
@@ -300,7 +302,7 @@ void refreshOnOFFText(String text) {
     tft.print(text);
 }
 
-void refreshOnTotalTime(long value) {
+void refreshTotalTime(long value) {
     tft.setTextSize(3);
     tft.setTextColor(BLACK);
     tft.fillRect(150, 120, 150, 30, RED);
@@ -311,7 +313,35 @@ void refreshOnTotalTime(long value) {
 void refreshCurrentPressure(float value) {
     tft.setTextSize(3);
     tft.setTextColor(BLACK);
-    tft.fillRect(150, 180, 150, 30, RED);
-    tft.setCursor(150, 180);
+    tft.fillRect(0, 180, 150, 30, YELLOW);
+    tft.setCursor(0, 180);
     tft.print(value);
+}
+
+double getPressure() {
+    int anR = analogRead(A10);
+    int invanR = map(anR, 0, 1023, 1023, 0);
+    double voltage = invanR / 1023.0 * 5.0;
+    //Serial.print("voltage = "); Serial.println(voltage);
+    if (voltage == 5.00) {
+        return 0.00;
+    } else {
+        double resistance = (12000.0 / (5.0 - voltage)) * voltage / 1000.0;
+        //Serial.print("resistance = "); Serial.println(resistance);
+        double base = resistance / 336.04;
+        //Serial.print("base = "); Serial.println(base);
+        double exponent = -1 / 0.712;
+        double force = pow(base, exponent); // in N
+        if (force > 0 && force < 1500.00) {
+            //Serial.print("force = "); Serial.println(force);
+            double area = 3.14 * pow(2.8, 2); // in mm^2
+            double pressure = force / area; // in N/mm^2
+            //Serial.print("pressure = "); Serial.println(pressure); 
+            return pressure;
+        } else {
+            //Serial.println("Error -1");
+            return -1.00;
+        }
+        delay(500);
+    }
 }
