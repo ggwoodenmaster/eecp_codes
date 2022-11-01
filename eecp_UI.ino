@@ -219,12 +219,15 @@ long changeNumber(long number, int x, int y) {
 void drawRunPage() {
     tft.fillScreen(BLACK);
     tft.fillRect(0, 0, 300, 30, GREEN); // operating bar
-    tft.fillRect(0, 30, 300, 30, LIGHTGREY);
+    tft.fillRect(0, 30, 300, 30, LIGHTGREY); // Cycle text
     tft.fillRect(0, 60, 150, 30, YELLOW); // current cycle
-    tft.fillRect(150, 60, 150, 30, RED);
+    tft.fillRect(150, 60, 150, 30, RED); // total cycle
     tft.fillRect(0, 90, 300, 30, LIGHTGREY); // ON/OFF text
     tft.fillRect(0, 120, 150, 30, YELLOW); // current time
     tft.fillRect(150, 120, 150, 30, RED); // total time
+    tft.fillRect(0, 150, 300, 30, LIGHTGREY); // Pressure text
+    tft.fillRect(0, 180, 150, 30, YELLOW); // current pressure
+    tft.fillRect(150, 180, 150, 30, RED); // aim pressure
     tft.setTextSize(3);
     tft.setTextColor(BLACK);
     tft.setCursor(0, 0);
@@ -237,12 +240,11 @@ void drawRunPage() {
     tft.print(number_cycle); // total cycle
     tft.setCursor(0, 90);
     tft.print("Status - ");
-    tft.setCursor(160, 90);
-    tft.print("ON"); // ON/OFF
-    tft.setCursor(0, 120);
-    tft.print("SS"); // current time
-    tft.setCursor(150, 120);
-    tft.print("NN"); // total time   
+    tft.setCursor(0, 150);
+    tft.print("Pressure");
+    tft.setCursor(150, 180);
+    tft.print(number_pressure);
+
     long start_time = millis();
     Serial.print("start_time = "); Serial.println(start_time);
     Serial.print("millis() = "); Serial.println(millis());
@@ -303,5 +305,13 @@ void refreshOnTotalTime(long value) {
     tft.setTextColor(BLACK);
     tft.fillRect(150, 120, 150, 30, RED);
     tft.setCursor(150, 120);
+    tft.print(value);
+}
+
+void refreshCurrentPressure(float value) {
+    tft.setTextSize(3);
+    tft.setTextColor(BLACK);
+    tft.fillRect(150, 180, 150, 30, RED);
+    tft.setCursor(150, 180);
     tft.print(value);
 }
