@@ -1,6 +1,6 @@
 {
     "board": "arduino:avr:mega",
-    "port": "COM3",
+    "port": "COM4",
     "sketch": "eecp_UI.ino",
     "output": "C:\\Users\\Pre 1\\Desktop\\EG4301\\Builds\\build2"
 }
