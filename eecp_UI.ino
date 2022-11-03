@@ -338,7 +338,7 @@ void refreshCurrentPressure(float value) {
  void getPressure() {
     int anR = analogRead(A10);
     pressureReadout[2] = anR;
-    double resistance = anR / 1023.0 * 10000.0; // using a 10K potentiometer
+    double resistance = anR / 1023.0 * 100.0; // using a 10K potentiometer in unit of Kohm
     //Serial.print("resistance = "); Serial.println(resistance);
     double base = resistance / 271.0;
     //Serial.print("base = "); Serial.println(base);
