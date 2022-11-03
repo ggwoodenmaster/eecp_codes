@@ -269,7 +269,7 @@ void drawRunPage() {
             refreshCurrentPressure(currentPressure);
             double anR = pressureReadout[2];
             Serial.print("anR = "); Serial.println(anR);
-            if (anR > 923) {
+            if (currentPressure < number_pressure) {
                 digitalWrite(41, HIGH);
             } else {
                 digitalWrite(41, LOW);
@@ -344,8 +344,8 @@ void refreshCurrentPressure(float value) {
     //Serial.print("base = "); Serial.println(base);
     double exponent = -1 / 0.69;
     double force = pow(base, exponent); // in g
+    Serial.print("force = "); Serial.println(force);
     if (force > 0.0 && force < 10000.0) { // base on given curve
-        //Serial.print("force = "); Serial.println(force);
         double area = 36.0 * 36.0; // in mm^2
         double pressure = force * 9.81 / area; // in N/mm^2
         //Serial.print("pressure = "); Serial.println(pressure); 
