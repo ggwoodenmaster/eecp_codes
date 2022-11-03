@@ -337,28 +337,21 @@ void refreshCurrentPressure(float value) {
 
  void getPressure() {
     int anR = analogRead(A10);
-    int invanR = map(anR, 0, 1023, 1023, 0);
-    pressureReadout[2] = invanR;
-    double voltage = invanR / 1023.0 * 5.0;
-    //Serial.print("voltage = "); Serial.println(voltage);
-    if (voltage == 5.00) {
-        pressureReadout[1] = 0.00;
+    pressureReadout[2] = anR;
+    double resistance = anR / 1023.0 * 10000.0; // using a 10K potentiometer
+    //Serial.print("resistance = "); Serial.println(resistance);
+    double base = resistance / 271.0;
+    //Serial.print("base = "); Serial.println(base);
+    double exponent = -1 / 0.69;
+    double force = pow(base, exponent); // in g
+    if (force > 0.0 && force < 10000.0) { // base on given curve
+        //Serial.print("force = "); Serial.println(force);
+        double area = 36.0 * 36.0; // in mm^2
+        double pressure = force * 9.81 / area; // in N/mm^2
+        //Serial.print("pressure = "); Serial.println(pressure); 
+        pressureReadout[1] = pressure;
     } else {
-        double resistance = (12000.0 / (5.0 - voltage)) * voltage / 1000.0;
-        //Serial.print("resistance = "); Serial.println(resistance);
-        double base = resistance / 336.04;
-        //Serial.print("base = "); Serial.println(base);
-        double exponent = -1 / 0.712;
-        double force = pow(base, exponent); // in N
-        if (force > 0 && force < 1500.00) {
-            //Serial.print("force = "); Serial.println(force);
-            double area = 3.14 * pow(2.8, 2); // in mm^2
-            double pressure = force / area; // in N/mm^2
-            //Serial.print("pressure = "); Serial.println(pressure); 
-            pressureReadout[1] = pressure;
-        } else {
-            //Serial.println("Error -1");
-            pressureReadout[1] = -1.00;
-        }
+        //Serial.println("Error -1");
+        pressureReadout[1] = -1.00;
     }
-}
+ }
