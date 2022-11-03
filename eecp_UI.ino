@@ -37,9 +37,11 @@ String symbol[4][3] = {
     {"C", "0", "OK"}
 };
 
+/*
 double pressureReadout[2] = {
     0.0, 0.0
 };
+*/
 
 long number_pressure = 0;
 long number_on = 0;
@@ -263,12 +265,11 @@ void drawRunPage() {
             refreshCurrentTime((millis() - start_time) / 1000.0 / 60.0);
             //Serial.println((millis() - start_time));
             //Serial.println((millis() - start_time) / 1000.0 / 60.0, 2);
-            getPressure();
-            double currentPressure = pressureReadout[1];
-            Serial.print("currentPressure = "); Serial.println(currentPressure);
+            double currentPressure = getPressure();
+            //Serial.print("currentPressure = "); Serial.println(currentPressure);
             refreshCurrentPressure(currentPressure);
-            double anR = pressureReadout[2];
-            Serial.print("anR = "); Serial.println(anR);
+            //double anR = pressureReadout[2];
+            //Serial.print("anR = "); Serial.println(anR);
             if (currentPressure < number_pressure) {
                 digitalWrite(41, HIGH);
             } else {
@@ -335,23 +336,23 @@ void refreshCurrentPressure(float value) {
     tft.print(value);
 }
 
- void getPressure() {
+ double getPressure() {
     int anR = analogRead(A10);
-    pressureReadout[2] = anR;
+    //pressureReadout[2] = anR;
     double resistance = anR / 1023.0 * 100.0; // using a 10K potentiometer in unit of Kohm
     //Serial.print("resistance = "); Serial.println(resistance);
     double base = resistance / 271.0;
     //Serial.print("base = "); Serial.println(base);
     double exponent = -1 / 0.69;
     double force = pow(base, exponent); // in g
-    Serial.print("force = "); Serial.println(force);
+    //Serial.print("force = "); Serial.println(force);
     if (force > 0.0 && force < 10000.0) { // base on given curve
         double area = 36.0 * 36.0; // in mm^2
         double pressure = force * 9.81 / area; // in N/mm^2
         //Serial.print("pressure = "); Serial.println(pressure); 
-        pressureReadout[1] = pressure;
+        return pressure;
     } else {
         //Serial.println("Error -1");
-        pressureReadout[1] = -1.00;
+        return -1.00;
     }
  }
