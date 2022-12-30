@@ -2,5 +2,5 @@
     "configuration": "cpu=atmega2560",
     "board": "arduino:avr:mega",
     "sketch": "eecp_UI.ino",
-    "output": "C:\\Users\\Pkelven\\Desktop\\EG4301\\Build\\desktop_build_2"
+    "output": "C:\\Users\\Pre 1\\Desktop\\EG4301\\Build\\build1"
 }
