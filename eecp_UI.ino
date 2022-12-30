@@ -60,7 +60,8 @@ void setup() {
     pinMode(DRIVER_DIRECTION, OUTPUT);
     pinMode(DRIVER_PULSE, OUTPUT);
     pinMode(DRIVER_ENABLE, OUTPUT);
-    Serial.begin(9600);
+    stepper.setMaxSpeed(1500);
+    Serial.begin(19200);
     tft.begin();
     if (!ts.begin(40)) { 
         Serial.println("Unable to start touchscreen.");
@@ -83,7 +84,7 @@ void loop() {
         //Serial.print("Current x = "); Serial.println(x);
         //Serial.print("Current y = "); Serial.println(y);
         //Serial.print("Current z = "); Serial.println(p.z);
-        Serial.print("CurrentPage = "); Serial.println(CurrentPage);
+        //Serial.print("CurrentPage = "); Serial.println(CurrentPage);
         if (CurrentPage == 0) {
             if (x>= 250 && x<= 300 && y>= 180 && y<= 220) { // button 4
                 CurrentPage = 4;
@@ -265,13 +266,13 @@ void drawRunPage() {
         digitalWrite(DRIVER_ENABLE, LOW);
         refreshCurrentTime_char("Squz");
         stepper.setSpeed(1000);
-        Serial.print("currentpositionNew = "); Serial.println(stepper.currentPosition());
+        //Serial.print("currentpositionNew = "); Serial.println(stepper.currentPosition());
         while (getPressure() < number_pressure) {
             digitalWrite(TRIGGER_LED, HIGH);
             double currentPressure = getPressure();
             refreshCurrentPressure(currentPressure);
             stepper.runSpeed();
-            Serial.print("currentpositionRunIni = "); Serial.println(stepper.currentPosition());
+            //Serial.print("currentpositionRunIni = "); Serial.println(stepper.currentPosition());
         }
         digitalWrite(TRIGGER_LED, LOW);
         long start_time = millis();
@@ -287,7 +288,7 @@ void drawRunPage() {
             if (currentPressure2 < number_pressure) {
                 digitalWrite(TRIGGER_LED, HIGH);
                 stepper.runSpeed();
-                Serial.print("currentpositionRun = "); Serial.println(stepper.currentPosition());
+                //Serial.print("currentpositionRun = "); Serial.println(stepper.currentPosition());
             } else {
                 digitalWrite(TRIGGER_LED, LOW);
             }
@@ -300,10 +301,10 @@ void drawRunPage() {
         refreshCurrentPressure_char(); // clearing current pressure reading
         refreshCurrentTime_char("Rev");
         stepper.setSpeed(-1000);
-        Serial.print("currentpositionStall = "); Serial.println(stepper.currentPosition());
+        //Serial.print("currentpositionStall = "); Serial.println(stepper.currentPosition());
         while (stepper.currentPosition() != 0) {
             stepper.runSpeed();
-            Serial.print("currentpositionRev = "); Serial.println(stepper.currentPosition());
+            //Serial.print("currentpositionRev = "); Serial.println(stepper.currentPosition());
         }
         refreshCurrentPressure(0.00); // showing constant 0 pressure
         digitalWrite(DRIVER_ENABLE, HIGH);
