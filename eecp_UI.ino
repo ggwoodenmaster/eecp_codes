@@ -263,42 +263,50 @@ void drawRunPage() {
         digitalWrite(POWER_LED, HIGH);
         refreshOnOFFText("ON");
         refreshTotalTime(number_on);
-        digitalWrite(DRIVER_ENABLE, LOW);
         refreshCurrentTime_char("Squz");
+        refreshCurrentPressure_char("Squz");      
+        digitalWrite(DRIVER_ENABLE, LOW);
         stepper.setSpeed(1000);
         //Serial.print("currentpositionNew = "); Serial.println(stepper.currentPosition());
         while (getPressure() < number_pressure) {
+            //Serial.print("pressure1 = "); Serial.println(getPressure());
             digitalWrite(TRIGGER_LED, HIGH);
-            double currentPressure = getPressure();
-            refreshCurrentPressure(currentPressure);
             stepper.runSpeed();
             //Serial.print("currentpositionRunIni = "); Serial.println(stepper.currentPosition());
         }
+        refreshCurrentPressure(getPressure());
         digitalWrite(TRIGGER_LED, LOW);
         long start_time = millis();
         //Serial.print("start_time = "); Serial.println(start_time);
         //Serial.print("millis() = "); Serial.println(millis());
         while ((millis() - start_time) < (number_on * 60 * 1000)) { // ON time
             refreshCurrentTime((millis() - start_time) / 1000.0 / 60.0);
+            refreshCurrentPressure(getPressure());
             //Serial.println((millis() - start_time));
             //Serial.println((millis() - start_time) / 1000.0 / 60.0, 2);
-            double currentPressure2 = getPressure();
-            //Serial.print("currentPressure = "); Serial.println(currentPressure);
-            refreshCurrentPressure(currentPressure2); 
-            if (currentPressure2 < number_pressure) {
-                digitalWrite(TRIGGER_LED, HIGH);
-                stepper.runSpeed();
-                //Serial.print("currentpositionRun = "); Serial.println(stepper.currentPosition());
-            } else {
+            if (getPressure() < number_pressure) {
+                //Serial.print("pressure2 = "); Serial.println(getPressure());
+                refreshCurrentPressure_char("Squz");
+                refreshCurrentTime_char("Squz"); // time paused for squeezing process
+                long stop_time = millis();
+                while (getPressure() < number_pressure) {
+                    //Serial.print("pressure3 = "); Serial.println(getPressure());
+                    digitalWrite(TRIGGER_LED, HIGH);
+                    stepper.runSpeed();
+                    //Serial.print("currentpositionRun = "); Serial.println(stepper.currentPosition());
+                }
                 digitalWrite(TRIGGER_LED, LOW);
-            }
+                refreshCurrentPressure_char("Complt");
+                delay(1000);
+                start_time = start_time + (millis() - stop_time);
+            } 
         }
         digitalWrite(POWER_LED, LOW);
         refreshOnOFFText("OFF");
         refreshTotalTime(number_off);
         digitalWrite(TRIGGER_LED, LOW);
         refreshSetPressure(0);
-        refreshCurrentPressure_char(); // clearing current pressure reading
+        refreshCurrentPressure_char("Rev");
         refreshCurrentTime_char("Rev");
         stepper.setSpeed(-1000);
         //Serial.print("currentpositionStall = "); Serial.println(stepper.currentPosition());
@@ -370,12 +378,12 @@ void refreshCurrentPressure(float value) {
     tft.print(value);
 }
 
-void refreshCurrentPressure_char() {
+void refreshCurrentPressure_char(String value) {
     tft.setTextSize(3);
     tft.setTextColor(BLACK);
     tft.fillRect(0, 180, 150, 30, YELLOW);
     tft.setCursor(0, 180);
-    tft.print("  ");
+    tft.print(value);
 }
 
 void refreshSetPressure(long value) {
