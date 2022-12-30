@@ -51,11 +51,15 @@ double CurrentPage = 0;
 
 Adafruit_FT6206 ts = Adafruit_FT6206();
 Adafruit_ILI9341 tft = Adafruit_ILI9341(LCD_CS, LCD_DC);
+AccelStepper stepper = AccelStepper(1, DRIVER_PULSE, DRIVER_DIRECTION);
 
 void setup() {
     pinMode(POWER_LED, OUTPUT); // power LED
     pinMode(A10, INPUT); // pressure sensor intake
     pinMode(TRIGGER_LED, OUTPUT); // trigger LED
+    pinMode(DRIVER_DIRECTION, OUTPUT);
+    pinMode(DRIVER_PULSE, OUTPUT);
+    pinMode(DRIVER_ENABLE, OUTPUT);
     Serial.begin(9600);
     tft.begin();
     if (!ts.begin(40)) { 
@@ -253,41 +257,65 @@ void drawRunPage() {
     tft.setCursor(150, 180);
     tft.print(number_pressure);
 
-    long start_time = millis();
-    //Serial.print("start_time = "); Serial.println(start_time);
-    //Serial.print("millis() = "); Serial.println(millis());
     for (int i= 1; i<= number_cycle; i++) {
         refreshCurrentCycle(i);
         digitalWrite(POWER_LED, HIGH);
         refreshOnOFFText("ON");
         refreshTotalTime(number_on);
+        digitalWrite(DRIVER_ENABLE, LOW);
+        refreshCurrentTime_char("Squz");
+        stepper.setSpeed(1000);
+        Serial.print("currentpositionNew = "); Serial.println(stepper.currentPosition());
+        while (getPressure() < number_pressure) {
+            digitalWrite(TRIGGER_LED, HIGH);
+            double currentPressure = getPressure();
+            refreshCurrentPressure(currentPressure);
+            stepper.runSpeed();
+            Serial.print("currentpositionRunIni = "); Serial.println(stepper.currentPosition());
+        }
+        digitalWrite(TRIGGER_LED, LOW);
+        long start_time = millis();
+        //Serial.print("start_time = "); Serial.println(start_time);
+        //Serial.print("millis() = "); Serial.println(millis());
         while ((millis() - start_time) < (number_on * 60 * 1000)) { // ON time
             refreshCurrentTime((millis() - start_time) / 1000.0 / 60.0);
             //Serial.println((millis() - start_time));
             //Serial.println((millis() - start_time) / 1000.0 / 60.0, 2);
-            double currentPressure = getPressure();
+            double currentPressure2 = getPressure();
             //Serial.print("currentPressure = "); Serial.println(currentPressure);
-            refreshCurrentPressure(currentPressure); // delay() needed?
-            if (currentPressure < number_pressure) {
+            refreshCurrentPressure(currentPressure2); 
+            if (currentPressure2 < number_pressure) {
                 digitalWrite(TRIGGER_LED, HIGH);
+                stepper.runSpeed();
+                Serial.print("currentpositionRun = "); Serial.println(stepper.currentPosition());
             } else {
                 digitalWrite(TRIGGER_LED, LOW);
             }
         }
-        start_time = millis(); // refreshing time mark for OFF
         digitalWrite(POWER_LED, LOW);
         refreshOnOFFText("OFF");
         refreshTotalTime(number_off);
         digitalWrite(TRIGGER_LED, LOW);
-        refreshCurrentPressure(-0.00); // Not measuring pressure
+        refreshSetPressure(0);
+        refreshCurrentPressure_char(); // clearing current pressure reading
+        refreshCurrentTime_char("Rev");
+        stepper.setSpeed(-1000);
+        Serial.print("currentpositionStall = "); Serial.println(stepper.currentPosition());
+        while (stepper.currentPosition() != 0) {
+            stepper.runSpeed();
+            Serial.print("currentpositionRev = "); Serial.println(stepper.currentPosition());
+        }
+        refreshCurrentPressure(0.00); // showing constant 0 pressure
+        digitalWrite(DRIVER_ENABLE, HIGH);
+        start_time = millis(); // refreshing time mark for OFF
         while ((millis() - start_time) < (number_off * 60 * 1000)) { // OFF time
             refreshCurrentTime((millis() - start_time) / 1000.0 / 60.0);
             //Serial.println((millis() - start_time) / 1000.0 / 60.0, 2);
             delay(50);
         }
-        start_time = millis(); // refreshing time mark for ON
     }
     CurrentPage = 0;
+    digitalWrite(DRIVER_ENABLE, LOW);
     drawHome();
 }
 
@@ -305,6 +333,14 @@ void refreshCurrentTime(float value) {
     tft.fillRect(0, 120, 150, 30, YELLOW);
     tft.setCursor(0, 120);
     tft.print(value, 1);
+}
+
+void refreshCurrentTime_char(String value) {
+    tft.setTextSize(3);
+    tft.setTextColor(BLACK);
+    tft.fillRect(0, 120, 150, 30, YELLOW);
+    tft.setCursor(0, 120);
+    tft.print(value);
 }
 
 void refreshOnOFFText(String text) {
@@ -330,6 +366,22 @@ void refreshCurrentPressure(float value) {
     tft.setTextColor(BLACK);
     tft.fillRect(0, 180, 150, 30, YELLOW);
     tft.setCursor(0, 180);
+    tft.print(value);
+}
+
+void refreshCurrentPressure_char() {
+    tft.setTextSize(3);
+    tft.setTextColor(BLACK);
+    tft.fillRect(0, 180, 150, 30, YELLOW);
+    tft.setCursor(0, 180);
+    tft.print("  ");
+}
+
+void refreshSetPressure(long value) {
+    tft.setTextSize(3);
+    tft.setTextColor(BLACK);
+    tft.fillRect(150, 180, 150, 30, RED);
+    tft.setCursor(150, 180);
     tft.print(value);
 }
 
