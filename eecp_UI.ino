@@ -3,9 +3,15 @@
 #include <Wire.h>
 #include <Adafruit_ILI9341.h>
 #include <Adafruit_FT6206.h> // DO NOT CHANGE INCLUDE ORDER!!!
+#include <AccelStepper.h>
 
 #define LCD_DC 9
 #define LCD_CS 10
+#define POWER_LED 40
+#define TRIGGER_LED 41
+#define DRIVER_ENABLE 42
+#define DRIVER_DIRECTION 43
+#define DRIVER_PULSE 44 // PWM
 //#define ICSP_SCLK 13
 //#define ICSP_MISO 12
 //#define ICSP_MOSI 11
@@ -37,12 +43,6 @@ String symbol[4][3] = {
     {"C", "0", "OK"}
 };
 
-/*
-double pressureReadout[2] = {
-    0.0, 0.0
-};
-*/
-
 long number_pressure = 0;
 long number_on = 0;
 long number_off = 0;
@@ -53,9 +53,9 @@ Adafruit_FT6206 ts = Adafruit_FT6206();
 Adafruit_ILI9341 tft = Adafruit_ILI9341(LCD_CS, LCD_DC);
 
 void setup() {
-    pinMode(40, OUTPUT); // power LED
+    pinMode(POWER_LED, OUTPUT); // power LED
     pinMode(A10, INPUT); // pressure sensor intake
-    pinMode(41, OUTPUT); // trigger LED
+    pinMode(TRIGGER_LED, OUTPUT); // trigger LED
     Serial.begin(9600);
     tft.begin();
     if (!ts.begin(40)) { 
@@ -258,7 +258,7 @@ void drawRunPage() {
     //Serial.print("millis() = "); Serial.println(millis());
     for (int i= 1; i<= number_cycle; i++) {
         refreshCurrentCycle(i);
-        digitalWrite(40, HIGH);
+        digitalWrite(POWER_LED, HIGH);
         refreshOnOFFText("ON");
         refreshTotalTime(number_on);
         while ((millis() - start_time) < (number_on * 60 * 1000)) { // ON time
@@ -267,21 +267,18 @@ void drawRunPage() {
             //Serial.println((millis() - start_time) / 1000.0 / 60.0, 2);
             double currentPressure = getPressure();
             //Serial.print("currentPressure = "); Serial.println(currentPressure);
-            refreshCurrentPressure(currentPressure);
-            //double anR = pressureReadout[2];
-            //Serial.print("anR = "); Serial.println(anR);
+            refreshCurrentPressure(currentPressure); // delay() needed?
             if (currentPressure < number_pressure) {
-                digitalWrite(41, HIGH);
+                digitalWrite(TRIGGER_LED, HIGH);
             } else {
-                digitalWrite(41, LOW);
+                digitalWrite(TRIGGER_LED, LOW);
             }
-            delay(50);
         }
         start_time = millis(); // refreshing time mark for OFF
-        digitalWrite(40, LOW);
+        digitalWrite(POWER_LED, LOW);
         refreshOnOFFText("OFF");
         refreshTotalTime(number_off);
-        digitalWrite(41, LOW);
+        digitalWrite(TRIGGER_LED, LOW);
         refreshCurrentPressure(-0.00); // Not measuring pressure
         while ((millis() - start_time) < (number_off * 60 * 1000)) { // OFF time
             refreshCurrentTime((millis() - start_time) / 1000.0 / 60.0);
@@ -338,7 +335,6 @@ void refreshCurrentPressure(float value) {
 
  double getPressure() {
     int anR = analogRead(A10);
-    //pressureReadout[2] = anR;
     double resistance = anR / 1023.0 * 100.0; // using a 10K potentiometer in unit of Kohm
     //Serial.print("resistance = "); Serial.println(resistance);
     double base = resistance / 271.0;
