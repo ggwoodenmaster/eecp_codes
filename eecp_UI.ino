@@ -433,6 +433,7 @@ void drawRunPage() {
     double offTime = calcOffTime(number_on, number_off, duration);
 
     for (int i= 1; i<= number_cycle; i++) {
+        refreshSetPressure(number_pressure);
         refreshCurrentCycle(i);
         digitalWrite(POWER_LED, HIGH);
         refreshOnOFFText("ON");
@@ -456,6 +457,8 @@ void drawRunPage() {
         while ((millis() - start_time) < (onTime * 60 * 1000)) { // ON time
             refreshCurrentTime((millis() - start_time) / 1000.0 / 60.0);
             refreshCurrentPressure(getPressure());
+            refreshScale(getPressure());
+            delay(500);
             //Serial.println((millis() - start_time));
             //Serial.println((millis() - start_time) / 1000.0 / 60.0, 2);
             if (getPressure() < number_pressure) {
@@ -488,13 +491,14 @@ void drawRunPage() {
             stepper.runSpeed();
             //Serial.print("currentpositionRev = "); Serial.println(stepper.currentPosition());
         }
-        refreshCurrentPressure(0.00); // showing constant 0 pressure
         digitalWrite(DRIVER_ENABLE, HIGH);
         start_time = millis(); // refreshing time mark for OFF
         while ((millis() - start_time) < (offTime * 60 * 1000)) { // OFF time
             refreshCurrentTime((millis() - start_time) / 1000.0 / 60.0);
             //Serial.println((millis() - start_time) / 1000.0 / 60.0, 2);
-            delay(50);
+            refreshCurrentPressure(getPressure());
+            refreshScale(getPressure());
+            delay(500);
         }
     }
     CurrentPage = 0;
@@ -544,7 +548,7 @@ void refreshTotalTime(double value) {
     tft.print(value, 1);
 }
 
-void refreshCurrentPressure(float value) {
+void refreshCurrentPressure(int value) {
     tft.setTextSize(3);
     tft.setTextColor(BLACK);
     tft.fillRect(0, 180, 150, 30, YELLOW);
@@ -568,10 +572,38 @@ void refreshSetPressure(long value) {
     tft.print(value);
 }
 
- double getPressure() {
+ int getPressure() {
     int anR = analogRead(A10);
-    return anR;
+    int take = map(anR, 0, 1023, 0, 200);
+    return take;
  }
+
+ void refreshScale(int number) {
+    tft.fillRect(0, 218, 300, 20, BLACK); // remove exist
+    tft.setTextColor(WHITE);
+    tft.setTextSize(1);
+    tft.setCursor(0, 210);
+    tft.print("0");
+    tft.setCursor(75, 210);
+    tft.print("50");
+    tft.setCursor(150, 210);
+    tft.print("100");
+    tft.setCursor(225, 210);
+    tft.print("150");
+    tft.setCursor(300, 210);
+    tft.print("200");
+    tft.drawRect(0, 218, 300, 20, BLUE);
+    tft.drawFastVLine(75, 218, 12, BLUE);
+    tft.drawFastVLine(150, 218, 12, BLUE);
+    tft.drawFastVLine(225, 218, 12, BLUE);
+    //Serial.print("number = "); Serial.println(number);
+    int draw = map(number, 0, 200, 0, 300);
+    //Serial.print("draw = "); Serial.println(draw);
+    tft.fillRect(0, 218, draw, 20, PINK);
+    tft.drawFastVLine(75, 218, 12, BLUE);
+    tft.drawFastVLine(150, 218, 12, BLUE);
+    tft.drawFastVLine(225, 218, 12, BLUE);
+}
 
  double calcOnTime(long number1, long number2, long number3) {
     double number11 = number1;
