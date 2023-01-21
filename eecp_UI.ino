@@ -429,12 +429,14 @@ void drawRunPage() {
     tft.print("Pressure");
     tft.setCursor(150, 180);
     tft.print(number_pressure);
+    double onTime = calcOnTime(number_on, number_off, duration);
+    double offTime = calcOffTime(number_on, number_off, duration);
 
     for (int i= 1; i<= number_cycle; i++) {
         refreshCurrentCycle(i);
         digitalWrite(POWER_LED, HIGH);
         refreshOnOFFText("ON");
-        refreshTotalTime(number_on);
+        refreshTotalTime(onTime);
         refreshCurrentTime_char("Squz");
         refreshCurrentPressure_char("Squz");      
         digitalWrite(DRIVER_ENABLE, LOW);
@@ -451,7 +453,7 @@ void drawRunPage() {
         long start_time = millis();
         //Serial.print("start_time = "); Serial.println(start_time);
         //Serial.print("millis() = "); Serial.println(millis());
-        while ((millis() - start_time) < (number_on * 60 * 1000)) { // ON time
+        while ((millis() - start_time) < (onTime * 60 * 1000)) { // ON time
             refreshCurrentTime((millis() - start_time) / 1000.0 / 60.0);
             refreshCurrentPressure(getPressure());
             //Serial.println((millis() - start_time));
@@ -475,7 +477,7 @@ void drawRunPage() {
         }
         digitalWrite(POWER_LED, LOW);
         refreshOnOFFText("OFF");
-        refreshTotalTime(number_off);
+        refreshTotalTime(offTime);
         digitalWrite(TRIGGER_LED, LOW);
         refreshSetPressure(0);
         refreshCurrentPressure_char("Rev");
@@ -489,7 +491,7 @@ void drawRunPage() {
         refreshCurrentPressure(0.00); // showing constant 0 pressure
         digitalWrite(DRIVER_ENABLE, HIGH);
         start_time = millis(); // refreshing time mark for OFF
-        while ((millis() - start_time) < (number_off * 60 * 1000)) { // OFF time
+        while ((millis() - start_time) < (offTime * 60 * 1000)) { // OFF time
             refreshCurrentTime((millis() - start_time) / 1000.0 / 60.0);
             //Serial.println((millis() - start_time) / 1000.0 / 60.0, 2);
             delay(50);
@@ -534,12 +536,12 @@ void refreshOnOFFText(String text) {
     tft.print(text);
 }
 
-void refreshTotalTime(long value) {
+void refreshTotalTime(double value) {
     tft.setTextSize(3);
     tft.setTextColor(BLACK);
     tft.fillRect(150, 120, 150, 30, RED);
     tft.setCursor(150, 120);
-    tft.print(value);
+    tft.print(value, 1);
 }
 
 void refreshCurrentPressure(float value) {
@@ -569,4 +571,21 @@ void refreshSetPressure(long value) {
  double getPressure() {
     int anR = analogRead(A10);
     return anR;
+ }
+
+ double calcOnTime(long number1, long number2, long number3) {
+    double number11 = number1;
+    double number22 = number2;
+    //Serial.print("number11 = "); Serial.println(number11);
+    //Serial.print("number22 = "); Serial.println(number22);
+    double onTime = number11 / (number11 + number22) * number3;
+    //Serial.print("onTime = "); Serial.println(onTime);
+    return onTime;
+ }
+
+double calcOffTime(long number1, long number2, long number3) {
+    double number11 = number1;
+    double number22 = number2;
+    double offTime = number22 / (number11 + number22) * number3;
+    return offTime;
  }
