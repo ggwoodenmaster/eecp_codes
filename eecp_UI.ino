@@ -48,6 +48,8 @@ long number_on = 0;
 long number_off = 0;
 long number_cycle = 0;
 double CurrentPage = 0;
+long duration = 0;
+int sub_page = 0;
 
 Adafruit_FT6206 ts = Adafruit_FT6206();
 Adafruit_ILI9341 tft = Adafruit_ILI9341(LCD_CS, LCD_DC);
@@ -94,13 +96,9 @@ void loop() {
                 CurrentPage = 3;
                 drawKeypad("Pressure = ", number_pressure);
                 delay(500);
-            } else if (x>= 30 && x<= 130 && y>= 130 && y<= 170) { // button 2.2
+            } else if (x>= 30 && x<= 230 && y>= 130 && y<= 170) { // button 2.2
                 CurrentPage = 2.2;
-                drawKeypad("ON = ", number_on);
-                delay(500);
-            } else if (x>= 130 && x<= 230 && y>= 130 && y<= 170) { // button 2.1
-                CurrentPage = 2.1;
-                drawKeypad("OFF = ", number_off);
+                drawKeypad_ratio("ON  : OFF   TIME", number_on, number_off, duration);
                 delay(500);
             } else if (x>= 30 && x<= 230 && y>= 80 && y<= 120) { // button 1
                 CurrentPage = 1;
@@ -110,9 +108,69 @@ void loop() {
         } else if (CurrentPage == 3) {
             number_pressure = changeNumber(number_pressure, x, y);
         } else if (CurrentPage == 2.2) {
-            number_on = changeNumber(number_on, x, y);
-        } else if (CurrentPage == 2.1) {
-            number_off = changeNumber(number_off, x, y);
+            if (sub_page == 0) {
+                if (x >= 0 && x<= 100 && y >= 30 && y <=60) {
+                    tft.setTextSize(3);
+                    tft.setTextColor(BLACK);
+                    tft.fillRect(0, 30, 300, 30, LIGHTGREY);
+                    tft.drawFastVLine(100, 30, 30, BLACK);
+                    tft.drawFastVLine(200, 30, 30, BLACK);
+                    tft.setCursor(0, 30);
+                    tft.setTextColor(RED);
+                    tft.println(number_on);
+                    tft.setTextColor(BLACK);
+                    tft.setCursor(100, 30);
+                    tft.println(number_off);
+                    tft.setCursor(200, 30);
+                    tft.println(duration);
+                    sub_page = 1;
+                    //Serial.print("page0 -> "); Serial.println(page);
+                } else if (x > 100 && x <= 200 && y >= 30 && y <=60) {
+                    tft.setTextSize(3);
+                    tft.setTextColor(BLACK);
+                    tft.fillRect(0, 30, 300, 30, LIGHTGREY);
+                    tft.drawFastVLine(100, 30, 30, BLACK);
+                    tft.drawFastVLine(200, 30, 30, BLACK);
+                    tft.setCursor(0, 30);
+                    tft.println(number_on);
+                    tft.setCursor(100, 30);
+                    tft.setTextColor(RED);
+                    tft.println(number_off);
+                    tft.setTextColor(BLACK);
+                    tft.setCursor(200, 30);
+                    tft.println(duration);
+                    sub_page = 2;
+                    //Serial.print("page0 -> "); Serial.println(page);
+                } else if (x > 200 && x <= 300 && y >= 30 && y <=60) {
+                    tft.setTextSize(3);
+                    tft.setTextColor(BLACK);
+                    tft.fillRect(0, 30, 300, 30, LIGHTGREY);
+                    tft.drawFastVLine(100, 30, 30, BLACK);
+                    tft.drawFastVLine(200, 30, 30, BLACK);
+                    tft.setCursor(0, 30);
+                    tft.println(number_on);
+                    tft.setCursor(100, 30);
+                    tft.println(number_off);
+                    tft.setCursor(200, 30);
+                    tft.setTextColor(RED);
+                    tft.println(duration);
+                    tft.setTextColor(BLACK);
+                    sub_page = 3;
+                    //Serial.print("page0 -> "); Serial.println(page);
+                } else if (x>= 200 && x< 300 && y>= 195 && y< 240) {
+                    CurrentPage = 0;
+                    drawHome();
+                }
+            } else if (sub_page == 1) {
+            number_on = changeNumber_ratio(number_on, x, y, 0);
+            //Serial.print("page1 -> "); Serial.println(page);
+            } else if (sub_page == 2) {
+            number_off = changeNumber_ratio(number_off, x, y, 100);
+            //Serial.print("page0 -> "); Serial.println(page);
+            } else if (sub_page == 3) {
+            duration = changeNumber_ratio(duration, x, y, 200);
+            //Serial.print("page0 -> "); Serial.println(page);
+            }
         } else if (CurrentPage == 1) {
             number_cycle = changeNumber(number_cycle, x, y);
         }
@@ -129,11 +187,8 @@ void drawHome() {
     tft.fillRoundRect(30, 180, 200, 40, 8, RED);
     tft.drawRoundRect(30, 180, 200, 40, 8, WHITE);  // button 3
 
-    tft.fillRoundRect(30, 130, 100, 40, 8, RED);    
-    tft.drawRoundRect(30, 130, 100, 40, 8, WHITE);  // button 2.2
-
-    tft.fillRoundRect(130, 130, 100, 40, 8, RED);    
-    tft.drawRoundRect(130, 130, 100, 40, 8, WHITE);  // button 2.1
+    tft.fillRoundRect(30, 130, 200, 40, 8, RED);
+    tft.drawRoundRect(30, 130, 200, 40, 8, WHITE);   // button 2    
 
     tft.fillRoundRect(30, 80, 200, 40, 8, RED);
     tft.drawRoundRect(30, 80, 200, 40, 8, WHITE);   // button 1
@@ -157,10 +212,7 @@ void drawHome() {
     tft.print("Set pressure"); // button 3
 
     tft.setCursor(35, 145);
-    tft.print("Set ON"); // button 2.2
-
-    tft.setCursor(135, 145);
-    tft.print("Set OFF"); // button 2.1
+    tft.print("Set ON/OFF ratio"); // button 2.2
 
     tft.setCursor(35, 95);
     tft.print("Set cycle"); // button 1
@@ -175,6 +227,40 @@ void drawKeypad(String prompt, long number) {
     tft.println(prompt);
     tft.setCursor(0, 30);
     tft.println(number);
+    tft.fillRect(0, 60, 300, 180, BLUE);
+
+    tft.setTextSize(4);
+    tft.setTextColor(WHITE);
+    for (int j=0; j<3; j++) { // i is the first argument; j is the second argument
+        for (int i=0; i<4; i++) {
+        tft.setCursor(0 + 100 * j, 60 + 45 * i);
+        tft.println(symbol[i][j]);
+        }
+    }
+    for (int h=105; h<=240; h+=45) {
+        tft.drawFastHLine(0, h, 300, WHITE);
+    }
+    for (int v=0; v<=300; v+=100) {
+        tft.drawFastVLine(v, 60, 200, WHITE);
+    }
+}
+
+void drawKeypad_ratio(String prompt, long number1, long number2, long number3) {
+    tft.fillRect(0, 0, 300, 30, GREEN);
+    tft.fillRect(0, 30, 300, 30, LIGHTGREY);
+    tft.drawFastVLine(100, 30, 30, BLACK);
+    tft.drawFastVLine(200, 30, 30, BLACK);
+    tft.setCursor(0, 0);
+    tft.setTextSize(3);
+    tft.setTextColor(RED);
+    tft.println(prompt);
+    tft.setTextColor(BLACK);
+    tft.setCursor(0, 30);
+    tft.println(number1);
+    tft.setCursor(100, 30);
+    tft.println(number2);
+    tft.setCursor(200, 30);
+    tft.println(number3);
     tft.fillRect(0, 60, 300, 180, BLUE);
 
     tft.setTextSize(4);
@@ -225,6 +311,92 @@ long changeNumber(long number, int x, int y) {
     if (x>= 200 && x< 300 && y>= 195 && y< 240) {
         CurrentPage = 0;
         drawHome();
+    }
+    return number;
+}
+
+long changeNumber_ratio(long number, int x, int y, int x_cord) {
+    if (x>= 0 && x< 100 && y>= 60 && y < 105) {
+        number = (number * 10) + 1;
+    } else if (x>= 100 && x< 200 && y>= 60 && y< 105) {
+        number = (number * 10) + 2;
+    } else if (x>= 200 && x< 300 && y>= 60 && y< 105) {
+        number = (number * 10) + 3;
+    } else if (x>= 0 && x< 100 && y>= 105 && y< 150) {
+        number = (number * 10) + 4;
+    } else if (x>= 100 && x< 200 && y>= 105 && y< 150) {
+        number = (number * 10) + 5;
+    } else if (x>= 200 && x< 300 && y>= 105 && y< 150) {
+        number = (number * 10) + 6;
+    } else if (x>= 0 && x< 100 && y>= 150 && y< 195) {
+        number = (number * 10) + 7;
+    } else if (x>= 100 && x< 200 && y>= 150 && y< 195) {
+        number = (number * 10) + 8;
+    } else if (x>= 200 && x< 300 && y>= 150 && y< 195) {
+        number = (number * 10) + 9;
+    } else if (x>= 0 && x< 100 && y>= 195 && y< 240) {
+        number = 0;
+        tft.fillRect(0, 30, 300, 30, LIGHTGREY);
+        tft.drawFastVLine(100, 30, 30, BLACK);
+        tft.drawFastVLine(200, 30, 30, BLACK);
+        if (x_cord == 0) {
+          tft.setCursor(0, 0);
+          tft.setTextSize(3);
+          tft.setTextColor(RED);
+          tft.setCursor(0, 30);
+          tft.println(number);
+          tft.setTextColor(BLACK);
+          tft.setCursor(100, 30);
+          tft.println(number_off);
+          tft.setCursor(200, 30);
+          tft.println(duration);
+        } else if (x_cord == 100) {
+          tft.setCursor(0, 0);
+          tft.setTextSize(3);
+          tft.setTextColor(BLACK);
+          tft.setCursor(0, 30);
+          tft.println(number_on);
+          tft.setTextColor(RED);
+          tft.setCursor(100, 30);
+          tft.println(number);
+          tft.setTextColor(BLACK);
+          tft.setCursor(200, 30);
+          tft.println(duration);
+        } else if (x_cord == 200) {
+          tft.setCursor(0, 0);
+          tft.setTextSize(3);
+          tft.setTextColor(BLACK);
+          tft.setCursor(0, 30);
+          tft.println(number_on);
+          tft.setCursor(100, 30);
+          tft.println(number_off);
+          tft.setTextColor(RED);
+          tft.setCursor(200, 30);
+          tft.println(number);
+        }
+    } else if (x>= 100 && x< 200 && y>= 195 && y< 240) {
+        number = (number * 10) + 0;
+    } 
+    //Serial.print("number = "); Serial.println(number);
+    tft.fillRect(x_cord, 30, 100, 30, LIGHTGREY);
+    tft.setCursor(x_cord, 30);
+    tft.setTextSize(3);
+    tft.setTextColor(RED);
+    tft.println(number);
+    if (x>= 200 && x< 300 && y>= 195 && y< 240) {
+      sub_page = 0;
+      tft.fillRect(0, 30, 300, 30, LIGHTGREY);
+      tft.drawFastVLine(100, 30, 30, BLACK);
+      tft.drawFastVLine(200, 30, 30, BLACK);
+      tft.setCursor(0, 0);
+      tft.setTextSize(3);
+      tft.setTextColor(BLACK);
+      tft.setCursor(0, 30);
+      tft.println(number_on);
+      tft.setCursor(100, 30);
+      tft.println(number_off);
+      tft.setCursor(200, 30);
+      tft.println(duration);
     }
     return number;
 }
@@ -396,20 +568,5 @@ void refreshSetPressure(long value) {
 
  double getPressure() {
     int anR = analogRead(A10);
-    double resistance = anR / 1023.0 * 100.0; // using a 10K potentiometer in unit of Kohm
-    //Serial.print("resistance = "); Serial.println(resistance);
-    double base = resistance / 271.0;
-    //Serial.print("base = "); Serial.println(base);
-    double exponent = -1 / 0.69;
-    double force = pow(base, exponent); // in g
-    //Serial.print("force = "); Serial.println(force);
-    if (force > 0.0 && force < 10000.0) { // base on given curve
-        double area = 36.0 * 36.0; // in mm^2
-        double pressure = force * 9.81 / area; // in N/mm^2
-        //Serial.print("pressure = "); Serial.println(pressure); 
-        return pressure;
-    } else {
-        //Serial.println("Error -1");
-        return -1.00;
-    }
+    return anR;
  }
