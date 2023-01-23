@@ -433,6 +433,7 @@ void drawRunPage() {
     double offTime = calcOffTime(number_on, number_off, duration);
 
     for (int i= 1; i<= number_cycle; i++) {
+        tft.fillRect(0, 210, 320, 28, BLACK);; // clearing existing scale bar
         refreshSetPressure(number_pressure);
         refreshCurrentCycle(i);
         digitalWrite(POWER_LED, HIGH);
@@ -465,6 +466,7 @@ void drawRunPage() {
                 //Serial.print("pressure2 = "); Serial.println(getPressure());
                 refreshCurrentPressure_char("Squz");
                 refreshCurrentTime_char("Squz"); // time paused for squeezing process
+                tft.fillRect(0, 210, 320, 28, BLACK); // clearing existing scale bar
                 long stop_time = millis();
                 while (getPressure() < number_pressure) {
                     //Serial.print("pressure3 = "); Serial.println(getPressure());
@@ -478,18 +480,17 @@ void drawRunPage() {
                 start_time = start_time + (millis() - stop_time);
             } 
         }
+        tft.fillRect(0, 210, 320, 28, BLACK); // clearing existing scale bar
         digitalWrite(POWER_LED, LOW);
         refreshOnOFFText("OFF");
         refreshTotalTime(offTime);
         digitalWrite(TRIGGER_LED, LOW);
-        refreshSetPressure(0);
+        refreshSetPressure_char("<DIA:80");
         refreshCurrentPressure_char("Rev");
         refreshCurrentTime_char("Rev");
         stepper.setSpeed(-1000);
-        //Serial.print("currentpositionStall = "); Serial.println(stepper.currentPosition());
-        while (stepper.currentPosition() != 0) {
+        while (getPressure() > 80) {
             stepper.runSpeed();
-            //Serial.print("currentpositionRev = "); Serial.println(stepper.currentPosition());
         }
         digitalWrite(DRIVER_ENABLE, HIGH);
         start_time = millis(); // refreshing time mark for OFF
@@ -565,6 +566,14 @@ void refreshCurrentPressure_char(String value) {
 }
 
 void refreshSetPressure(long value) {
+    tft.setTextSize(3);
+    tft.setTextColor(BLACK);
+    tft.fillRect(150, 180, 150, 30, RED);
+    tft.setCursor(150, 180);
+    tft.print(value);
+}
+
+void refreshSetPressure_char(String value) {
     tft.setTextSize(3);
     tft.setTextColor(BLACK);
     tft.fillRect(150, 180, 150, 30, RED);
