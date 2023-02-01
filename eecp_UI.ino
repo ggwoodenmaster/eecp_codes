@@ -4,6 +4,7 @@
 #include <Adafruit_ILI9341.h>
 #include <Adafruit_FT6206.h> // DO NOT CHANGE INCLUDE ORDER!!!
 #include <AccelStepper.h>
+#include <HX711_ADC.h>
 
 #define LCD_DC 9
 #define LCD_CS 10
@@ -12,6 +13,8 @@
 #define DRIVER_ENABLE 42
 #define DRIVER_DIRECTION 43
 #define DRIVER_PULSE 44 // PWM
+#define HX711_DOUT 45
+#define HX711_SCK 46
 //#define ICSP_SCLK 13
 //#define ICSP_MISO 12
 //#define ICSP_MOSI 11
@@ -50,10 +53,14 @@ long number_cycle = 0;
 double CurrentPage = 0;
 long duration = 0;
 int sub_page = 0;
+float calibrationValue = 25695.96; // internal pressure tare value
+unsigned long stabilizingtime = 2000;
+boolean _tare = true;
 
 Adafruit_FT6206 ts = Adafruit_FT6206();
 Adafruit_ILI9341 tft = Adafruit_ILI9341(LCD_CS, LCD_DC);
 AccelStepper stepper = AccelStepper(1, DRIVER_PULSE, DRIVER_DIRECTION);
+HX711_ADC LoadCell(HX711_DOUT, HX711_SCK);
 
 void setup() {
     pinMode(POWER_LED, OUTPUT); // power LED
@@ -65,6 +72,9 @@ void setup() {
     stepper.setMaxSpeed(1500);
     Serial.begin(19200);
     tft.begin();
+    LoadCell.begin();
+    LoadCell.start(stabilizingtime, _tare);
+    LoadCell.setCalFactor(calibrationValue);
     if (!ts.begin(40)) { 
         Serial.println("Unable to start touchscreen.");
     } else { 
@@ -582,9 +592,10 @@ void refreshSetPressure_char(String value) {
 }
 
  int getPressure() {
-    int anR = analogRead(A10);
-    int take = map(anR, 0, 1023, 0, 200);
-    return take;
+    LoadCell.update();
+    float i = LoadCell.getData();
+    //Serial.print("pressure = "); Serial.println(i);
+    return i;
  }
 
  void refreshScale(int number) {
