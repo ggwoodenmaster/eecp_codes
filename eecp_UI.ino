@@ -452,7 +452,7 @@ void drawRunPage() {
         refreshCurrentTime_char("Squz");
         refreshCurrentPressure_char("Squz");      
         digitalWrite(DRIVER_ENABLE, LOW);
-        stepper.setSpeed(1000);
+        stepper.setSpeed(500);
         //Serial.print("currentpositionNew = "); Serial.println(stepper.currentPosition());
         while (getPressure() < number_pressure) {
             //Serial.print("pressure1 = "); Serial.println(getPressure());
@@ -498,7 +498,7 @@ void drawRunPage() {
         refreshSetPressure_char("<DIA:80");
         refreshCurrentPressure_char("Rev");
         refreshCurrentTime_char("Rev");
-        stepper.setSpeed(-1000);
+        stepper.setSpeed(-500);
         while (getPressure() > 80) {
             stepper.runSpeed();
         }
