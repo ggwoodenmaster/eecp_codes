@@ -594,6 +594,45 @@ void refreshSetPressure_char(String value) {
  int getPressure() {
     LoadCell.update();
     float i = LoadCell.getData();
+    if (i> 10 && i<= 20) {
+        i = i - 4;
+    } else if (i> 20 && i <= 30) {
+        i = i - 6;
+    } else if (i> 30 && i <= 40) {
+        i = i - 6;
+    } else if (i> 40 && i <= 50) {
+        i = i - 7;
+    } else if (i> 50 && i <= 60) {
+        i = i - 7;
+    } else if (i> 60 && i <= 70) {
+        i = i - 7;
+    } else if (i> 70 && i <= 80) {
+        i = i - 7;
+    } else if (i> 80 && i <= 90) {
+        i = i - 6;
+    } else if (i> 90 && i <= 100) {
+        i = i - 6;
+    } else if (i> 100 && i <= 110) {
+        i = i - 5;
+    } else if (i> 110 && i <= 120) {
+        i = i - 3;
+    } else if (i> 120 && i <= 130) {
+        i = i - 3;
+    } else if (i> 130 && i <= 140) {
+        i = i - 4;
+    } else if (i> 140 && i <= 150) {
+        i = i - 3;
+    } else if (i> 150 && i <= 160) {
+        i = i - 2;
+    } else if (i> 160 && i <= 170) {
+        i = i - 2;
+    } else if (i> 170 && i <= 180) {
+        i = i - 3;
+    } else if (i> 180 && i <= 190) {
+        i = i - 2;
+    } else if (i> 190 && i <= 200) {
+        i = i - 2;
+    }
     //Serial.print("pressure = "); Serial.println(i);
     return i;
  }
