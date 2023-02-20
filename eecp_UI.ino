@@ -10,7 +10,7 @@
 #define LCD_CS 10
 #define POWER_LED 40
 #define TRIGGER_LED 41
-#define DRIVER_ENABLE 42
+#define DRIVER_ENABLE 42 // HIGH = DISABLE
 #define DRIVER_DIRECTION 43
 #define DRIVER_PULSE 44 // PWM
 #define HX711_DOUT 45
@@ -69,7 +69,8 @@ void setup() {
     pinMode(DRIVER_DIRECTION, OUTPUT);
     pinMode(DRIVER_PULSE, OUTPUT);
     pinMode(DRIVER_ENABLE, OUTPUT);
-    stepper.setMaxSpeed(1500);
+    digitalWrite(DRIVER_ENABLE, HIGH);
+    stepper.setMaxSpeed(30000);
     Serial.begin(19200);
     tft.begin();
     LoadCell.begin();
@@ -452,7 +453,8 @@ void drawRunPage() {
         refreshCurrentTime_char("Squz");
         refreshCurrentPressure_char("Squz");      
         digitalWrite(DRIVER_ENABLE, LOW);
-        stepper.setSpeed(500);
+        stepper.setSpeed(30000);
+        delay(1000); // important delay for driver stabilisation
         //Serial.print("currentpositionNew = "); Serial.println(stepper.currentPosition());
         while (getPressure() < number_pressure) {
             //Serial.print("pressure1 = "); Serial.println(getPressure());
@@ -498,7 +500,7 @@ void drawRunPage() {
         refreshSetPressure_char("<DIA:80");
         refreshCurrentPressure_char("Rev");
         refreshCurrentTime_char("Rev");
-        stepper.setSpeed(-500);
+        stepper.setSpeed(-30000);
         while (getPressure() > 80) {
             stepper.runSpeed();
         }
@@ -513,7 +515,7 @@ void drawRunPage() {
         }
     }
     CurrentPage = 0;
-    digitalWrite(DRIVER_ENABLE, LOW);
+    digitalWrite(DRIVER_ENABLE, HIGH);
     drawHome();
 }
 
@@ -592,6 +594,7 @@ void refreshSetPressure_char(String value) {
 }
 
  int getPressure() {
+    /*
     LoadCell.update();
     float i = LoadCell.getData();
     if (i> 10 && i<= 20) {
@@ -635,6 +638,10 @@ void refreshSetPressure_char(String value) {
     }
     //Serial.print("pressure = "); Serial.println(i);
     return i;
+    */
+    int anR = analogRead(A10);
+    int take = map(anR, 0, 1023, 0, 200);
+    return take;
  }
 
  void refreshScale(int number) {
