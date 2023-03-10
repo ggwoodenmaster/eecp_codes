@@ -46,14 +46,14 @@ String symbol[4][3] = {
     {"C", "0", "OK"}
 };
 
-long number_pressure = 0;
-long number_on = 0;
-long number_off = 0;
-long number_cycle = 0;
+long number_pressure = 60;
+long number_on = 1;
+long number_off = 1;
+long number_cycle = 1;
 double CurrentPage = 0;
-long duration = 0;
+long duration = 1;
 int sub_page = 0;
-float calibrationValue = 25695.96; // internal pressure tare value
+float calibrationValue = 25081.11; // internal pressure tare value
 unsigned long stabilizingtime = 2000;
 boolean _tare = true;
 
@@ -114,6 +114,10 @@ void loop() {
             } else if (x>= 30 && x<= 230 && y>= 80 && y<= 120) { // button 1
                 CurrentPage = 1;
                 drawKeypad("Cycle = ", number_cycle);
+                delay(500);
+            } else if (x>= 250 && x<= 300 && y>= 130 && y<= 170) {
+                CurrentPage = 5;
+                drawPressureSole();
                 delay(500);
             }
         } else if (CurrentPage == 3) {
@@ -204,6 +208,9 @@ void drawHome() {
     tft.fillRoundRect(30, 80, 200, 40, 8, RED);
     tft.drawRoundRect(30, 80, 200, 40, 8, WHITE);   // button 1
 
+    tft.fillRoundRect(250, 130, 50, 40, 8, MAGENTA);
+    tft.drawRoundRect(250, 130, 50, 40, 8, WHITE);  // button 5  
+
     tft.setCursor(30, 20);
     tft.setTextSize(2);
     tft.setFont();
@@ -215,6 +222,9 @@ void drawHome() {
     tft.print("EG4301 Project");
     
     tft.setTextColor(BLACK);
+    
+    tft.setCursor(255, 145);
+    tft.print("T"); // button 5
     
     tft.setCursor(255, 195);
     tft.print("Run"); // button 4
@@ -453,7 +463,7 @@ void drawRunPage() {
         refreshCurrentTime_char("Squz");
         refreshCurrentPressure_char("Squz");      
         digitalWrite(DRIVER_ENABLE, LOW);
-        stepper.setSpeed(30000);
+        stepper.setSpeed(7000);
         delay(1000); // important delay for driver stabilisation
         //Serial.print("currentpositionNew = "); Serial.println(stepper.currentPosition());
         while (getPressure() < number_pressure) {
@@ -500,7 +510,7 @@ void drawRunPage() {
         refreshSetPressure_char("<DIA:80");
         refreshCurrentPressure_char("Rev");
         refreshCurrentTime_char("Rev");
-        stepper.setSpeed(-30000);
+        stepper.setSpeed(-3000);
         while (getPressure() > 80) {
             stepper.runSpeed();
         }
@@ -594,9 +604,9 @@ void refreshSetPressure_char(String value) {
 }
 
  int getPressure() {
-    /*
     LoadCell.update();
     float i = LoadCell.getData();
+    /*
     if (i> 10 && i<= 20) {
         i = i - 4;
     } else if (i> 20 && i <= 30) {
@@ -639,9 +649,7 @@ void refreshSetPressure_char(String value) {
     //Serial.print("pressure = "); Serial.println(i);
     return i;
     */
-    int anR = analogRead(A10);
-    int take = map(anR, 0, 1023, 0, 200);
-    return take;
+    return i;
  }
 
  void refreshScale(int number) {
@@ -686,4 +694,22 @@ double calcOffTime(long number1, long number2, long number3) {
     double number22 = number2;
     double offTime = number22 / (number11 + number22) * number3;
     return offTime;
+ }
+
+void drawPressureSole() {
+    long starttime_sole = millis();
+    //Serial.print("starttime_sole = "); Serial.println(starttime_sole);
+    while (millis() - starttime_sole < 5000) {
+        tft.fillScreen(BLACK);
+        tft.setTextSize(10);
+        tft.setTextColor(WHITE);
+        tft.setCursor(50, 100);
+        int x = getPressure();
+        tft.print(x);
+        tft.setTextSize(7);
+        tft.setCursor(60, 180);
+        tft.print("mmHg");
+    }
+    drawHome();
+    CurrentPage = 0;
  }
