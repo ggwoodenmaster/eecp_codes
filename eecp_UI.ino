@@ -15,6 +15,9 @@
 #define DRIVER_PULSE 44 // PWM
 #define HX711_DOUT 45
 #define HX711_SCK 46
+#define ECG_OUTPUT A8
+#define ECG_LO_MINUS 31
+#define ECG_LO_PLUS 30
 //#define ICSP_SCLK 13
 //#define ICSP_MISO 12
 //#define ICSP_MOSI 11
@@ -69,6 +72,9 @@ void setup() {
     pinMode(DRIVER_DIRECTION, OUTPUT);
     pinMode(DRIVER_PULSE, OUTPUT);
     pinMode(DRIVER_ENABLE, OUTPUT);
+    pinMode(ECG_OUTPUT, INPUT);
+    pinMode(ECG_LO_MINUS, INPUT);
+    pinMode(ECG_LO_PLUS, INPUT);
     digitalWrite(DRIVER_ENABLE, HIGH);
     stepper.setMaxSpeed(30000);
     Serial.begin(19200);
@@ -117,7 +123,7 @@ void loop() {
                 delay(500);
             } else if (x>= 250 && x<= 300 && y>= 130 && y<= 170) {
                 CurrentPage = 5;
-                drawPressureSole();
+                drawEcgSole();
                 delay(500);
             }
         } else if (CurrentPage == 3) {
@@ -224,7 +230,7 @@ void drawHome() {
     tft.setTextColor(BLACK);
     
     tft.setCursor(255, 145);
-    tft.print("T"); // button 5
+    tft.print("ECG"); // button 5
     
     tft.setCursor(255, 195);
     tft.print("Run"); // button 4
@@ -606,49 +612,6 @@ void refreshSetPressure_char(String value) {
  int getPressure() {
     LoadCell.update();
     float i = LoadCell.getData();
-    /*
-    if (i> 10 && i<= 20) {
-        i = i - 4;
-    } else if (i> 20 && i <= 30) {
-        i = i - 6;
-    } else if (i> 30 && i <= 40) {
-        i = i - 6;
-    } else if (i> 40 && i <= 50) {
-        i = i - 7;
-    } else if (i> 50 && i <= 60) {
-        i = i - 7;
-    } else if (i> 60 && i <= 70) {
-        i = i - 7;
-    } else if (i> 70 && i <= 80) {
-        i = i - 7;
-    } else if (i> 80 && i <= 90) {
-        i = i - 6;
-    } else if (i> 90 && i <= 100) {
-        i = i - 6;
-    } else if (i> 100 && i <= 110) {
-        i = i - 5;
-    } else if (i> 110 && i <= 120) {
-        i = i - 3;
-    } else if (i> 120 && i <= 130) {
-        i = i - 3;
-    } else if (i> 130 && i <= 140) {
-        i = i - 4;
-    } else if (i> 140 && i <= 150) {
-        i = i - 3;
-    } else if (i> 150 && i <= 160) {
-        i = i - 2;
-    } else if (i> 160 && i <= 170) {
-        i = i - 2;
-    } else if (i> 170 && i <= 180) {
-        i = i - 3;
-    } else if (i> 180 && i <= 190) {
-        i = i - 2;
-    } else if (i> 190 && i <= 200) {
-        i = i - 2;
-    }
-    //Serial.print("pressure = "); Serial.println(i);
-    return i;
-    */
     return i;
  }
 
@@ -696,20 +659,50 @@ double calcOffTime(long number1, long number2, long number3) {
     return offTime;
  }
 
-void drawPressureSole() {
-    long starttime_sole = millis();
-    //Serial.print("starttime_sole = "); Serial.println(starttime_sole);
-    while (millis() - starttime_sole < 5000) {
-        tft.fillScreen(BLACK);
-        tft.setTextSize(10);
-        tft.setTextColor(WHITE);
-        tft.setCursor(50, 100);
-        int x = getPressure();
-        tft.print(x);
-        tft.setTextSize(7);
-        tft.setCursor(60, 180);
-        tft.print("mmHg");
+void drawEcgSole() {
+    long start_time = 0;
+    tft.fillScreen(BLACK);
+    tft.setCursor(0, 0);
+    tft.setTextColor(WHITE);
+    tft.setTextSize(3);
+    tft.print("ECG mode:        reaching initial pressure");
+    stepper.setSpeed(2000);
+    /*
+    while (getPressure() < 80) {
+        stepper.runSpeed();
     }
-    drawHome();
-    CurrentPage = 0;
+    */
+    tft.fillScreen(BLACK);
+    tft.print("ECG mode in operation");
+    while (true) {
+        delay(5);
+        if ((digitalRead(ECG_LO_MINUS) == 1) && digitalRead(ECG_LO_PLUS) == 1) {
+            tft.fillScreen(BLACK);
+            tft.setCursor(0, 0);
+            tft.print("No correct ECG is detected");
+        } else if (analogRead(ECG_OUTPUT) >= 720) {
+            Serial.println(analogRead(ECG_OUTPUT));
+            stepper.setSpeed(5000);
+            tft.fillScreen(BLACK);
+            tft.setCursor(0, 0);
+            tft.print("ECG mode in operation1");
+            start_time = millis();
+            while ((millis() - start_time) < 500) {
+                stepper.runSpeed();
+            }
+            tft.fillScreen(BLACK);
+            tft.setCursor(0, 0);
+            tft.print("ECG mode in operation2");
+            start_time = millis();
+            stepper.setSpeed(-5000);
+            while ((millis() - start_time) < 500) {
+                stepper.runSpeed();
+            }
+        } else {
+        Serial.println(analogRead(ECG_OUTPUT));
+        tft.fillScreen(BLACK);
+        tft.setCursor(0, 0);
+        tft.print("Waiting for      R peak");
+        }
+    }
  }
