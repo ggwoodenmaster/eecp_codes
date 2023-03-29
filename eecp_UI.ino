@@ -49,14 +49,14 @@ String symbol[4][3] = {
     {"C", "0", "OK"}
 };
 
-long number_pressure = 60;
+long number_pressure = 100;
 long number_on = 1;
 long number_off = 1;
 long number_cycle = 1;
 double CurrentPage = 0;
-long duration = 1;
+long duration = 100;
 int sub_page = 0;
-float calibrationValue = 25081.11; // internal pressure tare value
+float calibrationValue = 903.67; // internal pressure tare value
 unsigned long stabilizingtime = 2000;
 boolean _tare = true;
 
@@ -469,7 +469,7 @@ void drawRunPage() {
         refreshCurrentTime_char("Squz");
         refreshCurrentPressure_char("Squz");      
         digitalWrite(DRIVER_ENABLE, LOW);
-        stepper.setSpeed(7000);
+        stepper.setSpeed(2000);
         delay(1000); // important delay for driver stabilisation
         //Serial.print("currentpositionNew = "); Serial.println(stepper.currentPosition());
         while (getPressure() < number_pressure) {
@@ -483,6 +483,7 @@ void drawRunPage() {
         long start_time = millis();
         //Serial.print("start_time = "); Serial.println(start_time);
         //Serial.print("millis() = "); Serial.println(millis());
+        stepper.setSpeed(1000);
         while ((millis() - start_time) < (onTime * 60 * 1000)) { // ON time
             refreshCurrentTime((millis() - start_time) / 1000.0 / 60.0);
             refreshCurrentPressure(getPressure());
@@ -516,7 +517,7 @@ void drawRunPage() {
         refreshSetPressure_char("<DIA:80");
         refreshCurrentPressure_char("Rev");
         refreshCurrentTime_char("Rev");
-        stepper.setSpeed(-3000);
+        stepper.setSpeed(-2000);
         while (getPressure() > 80) {
             stepper.runSpeed();
         }
@@ -612,7 +613,13 @@ void refreshSetPressure_char(String value) {
  int getPressure() {
     LoadCell.update();
     float i = LoadCell.getData();
+    i = i; // pressure calibration
     return i;
+    /*
+    int a = analogRead(A9);
+    a = map(a, 0 , 1023, 0, 200);
+    return a;
+    */
  }
 
  void refreshScale(int number) {
@@ -660,6 +667,7 @@ double calcOffTime(long number1, long number2, long number3) {
  }
 
 void drawEcgSole() {
+    digitalWrite(DRIVER_ENABLE, LOW);
     long start_time = 0;
     tft.fillScreen(BLACK);
     tft.setCursor(0, 0);
@@ -667,34 +675,34 @@ void drawEcgSole() {
     tft.setTextSize(3);
     tft.print("ECG mode:        reaching initial pressure");
     stepper.setSpeed(2000);
-    /*
-    while (getPressure() < 80) {
+    delay(5000);
+    while (getPressure() < 120) {
         stepper.runSpeed();
     }
-    */
     tft.fillScreen(BLACK);
     tft.print("ECG mode in operation");
     while (true) {
         delay(5);
+        Serial.println(analogRead(ECG_OUTPUT));
         if ((digitalRead(ECG_LO_MINUS) == 1) && digitalRead(ECG_LO_PLUS) == 1) {
             tft.fillScreen(BLACK);
             tft.setCursor(0, 0);
             tft.print("No correct ECG is detected");
-        } else if (analogRead(ECG_OUTPUT) >= 720) {
+        } else if (digitalRead(32) == 1) {
             Serial.println(analogRead(ECG_OUTPUT));
-            stepper.setSpeed(5000);
+            stepper.setSpeed(2000);
             tft.fillScreen(BLACK);
             tft.setCursor(0, 0);
             tft.print("ECG mode in operation1");
             start_time = millis();
-            while ((millis() - start_time) < 500) {
+            while (getPressure() < 160) {
                 stepper.runSpeed();
             }
             tft.fillScreen(BLACK);
             tft.setCursor(0, 0);
             tft.print("ECG mode in operation2");
             start_time = millis();
-            stepper.setSpeed(-5000);
+            stepper.setSpeed(-2000);
             while ((millis() - start_time) < 500) {
                 stepper.runSpeed();
             }
